@@ -1,0 +1,24 @@
+"""They're not global variables; they're in the cloud!"""
+
+App = None
+settings = None
+bold_font = None
+model = None
+settings = None
+prefs_dialog = None
+item_context_menu = None
+systray = None
+drag_start_position = None
+drag_start_action = None
+icon_provider = None
+abort = False
+populating = False
+active_root = None
+
+EXECUTABLES = {"application/x-executable",
+               "application/executable",
+               "text/x-shellscript"}
+
+default_options = {"ShowHidden": False,
+                   "DirsFirst": True,
+                   "IncludePrevious": False}

@@ -1,0 +1,5 @@
+.gitattributes export-ignore
+.gitignore export-ignore
+.pydevproject export-ignore
+.project export-ignore
+.externalToolBuilders export-ignore
