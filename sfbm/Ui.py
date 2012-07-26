@@ -99,7 +99,7 @@ class PrefsDialog(QtGui.QDialog):
 
     def update(self):
         index = self.ui.listView.currentIndex()
-        if index:
+        if index.row() > -1:
             root = G.model.itemFromIndex(index).data()
             self.init_checkboxes(root.options)
             self.ui.iconButton.setIcon(root.icon())
