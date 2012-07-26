@@ -101,7 +101,7 @@ class MainTray(QtGui.QSystemTrayIcon):
         if icon_path:
             self._icon = QtGui.QIcon(icon_path)
         else:
-            self._icon = QtGui.QIcon.fromTheme("inode-directory")
+            self._icon = G.icon_provider.icon(QtGui.QFileIconProvider.Drive)
         self.setIcon(self._icon)
 
     def add_app_action(self, text, func, theme_icon=None):
