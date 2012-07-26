@@ -9,8 +9,6 @@ Build-Depends: debhelper (>= 8.0.0),
  python3-pyqt4
 Standards-Version: 3.9.2
 Homepage: https://github.com/kahu/sfbm
-#Vcs-Git: git://git.debian.org/collab-maint/sfbm.git
-#Vcs-Browser: http://git.debian.org/?p=collab-maint/sfbm.git;a=summary
 
 Package: sfbm
 Architecture: all
