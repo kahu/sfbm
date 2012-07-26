@@ -2,11 +2,11 @@ Source: sfbm
 Section: utils
 Priority: optional
 Maintainer: Ka Hu <kahu2000@gmail.com>
-X-Python3-Version: >= 3.2
+X-Python-Version: >= 2.7
 Build-Depends: debhelper (>= 8.0.0),
- python3,
- python3-all-dev,
- python3-pyqt4
+ python,
+ python-all-dev,
+ python-qt4
 Standards-Version: 3.9.2
 Homepage: https://github.com/kahu/sfbm
 #Vcs-Git: git://git.debian.org/collab-maint/sfbm.git
@@ -14,7 +14,7 @@ Homepage: https://github.com/kahu/sfbm
 
 Package: sfbm
 Architecture: all
-Depends: ${python3:Depends}, ${misc:Depends}, python3, python3-pyqt4
+Depends: ${python2:Depends}, ${misc:Depends}, python, python-qt4
 Suggests: kde-runtime
 Description: A simple file browser in the systray.
  Stupid File Browser Menu is a simple systray application for browsing
