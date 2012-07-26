@@ -1,0 +1,7 @@
+Format: http://dep.debian.net/deps/dep5
+Upstream-Name: sfbm
+Source: <url://example.com>
+
+Files: *
+Copyright: 2012 Ka Hu <kahu2000@gmail.com>
+License: GPL-3

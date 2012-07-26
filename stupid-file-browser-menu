@@ -1,0 +1,155 @@
+#!/usr/bin/python3
+
+import sys
+import os
+import subprocess
+from PyQt4 import QtCore, QtGui, uic
+from sfbm.Config import Config
+from sfbm.Ui import PrefsDialog
+from sfbm.FileStuff import RootEntry
+import sfbm.Global as G
+QtCore.Signal = QtCore.pyqtSignal
+QtCore.Slot = QtCore.pyqtSlot
+
+
+class SFBM(QtGui.QApplication):
+    def __init__(self):
+        QtGui.QApplication.__init__(self, sys.argv)
+
+        QtCore.QCoreApplication.setApplicationName("sfbm")
+        QtCore.QCoreApplication.setOrganizationName("sfbm")
+
+        G.App = self
+        G.bold_font = self.font()
+        G.bold_font.setBold(True)
+        G.italic_font = self.font()
+        G.italic_font.setItalic(True)
+        G.model = QtGui.QStandardItemModel()
+        G.icon_provider = QtGui.QFileIconProvider()
+        G.settings = Config()
+        G.prefs_dialog = PrefsDialog()
+        G.item_context_menu = ItemContextMenu()
+        G.systray = MainTray(icon_path=None)
+        self.roots = {}
+        self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, on=False)
+        self.setStyleSheet("QMenu { menu-scrollable: 1; }")
+        self.setQuitOnLastWindowClosed(False)
+        self.aboutToQuit.connect(self.on_death)
+
+        for (i, (path, icon, options)) in enumerate(G.settings.roots()):
+            self.add_rootentry(path, icon=icon, index=i, options=options)
+
+    def add_rootentry(self, path, icon=None, index=0, options=None):
+        fi = QtCore.QFileInfo(path)
+        if fi.exists() and fi.isDir():
+            if not fi.absoluteFilePath() in self.roots:
+                root = RootEntry(fi, icon_path=icon,
+                                 parent=G.systray, options=options)
+                G.model.insertRow(index, root.item)
+                self.roots[fi.absoluteFilePath()] = root
+                return root
+
+    def remove_rootentry(self, index):
+        root = G.model.item(index).data()
+        if self.roots and root:
+            self.roots.pop(root.data().absoluteFilePath())
+            G.model.removeRow(index)
+            return True
+        else:
+            return False
+
+    @QtCore.Slot()
+    def on_death(self):
+        G.settings.write_settings()
+        G.systray.hide()
+        G.systray.deleteLater()
+
+
+class MainTray(QtGui.QSystemTrayIcon):
+    def __init__(self, icon_path=None, parent=None):
+        QtGui.QSystemTrayIcon.__init__(self, parent)
+
+        self.menu = QtGui.QMenu(parent)
+        self.tray_icon = icon_path
+        self.app_actions = []
+        self.menu.aboutToShow.connect(self.populate_menu)
+        self.menu.triggered.connect(self.on_triggered)
+        self.activated.connect(self.on_activated)
+        self.add_app_action("Settings", G.prefs_dialog.activate,
+                            "preferences-other")
+        self.add_app_action("Quit", G.App.quit, "application-exit")
+        self.show()
+
+    @QtCore.Slot(QtGui.QAction)
+    def on_triggered(self, action):
+        if not action in self.app_actions:
+            action.launch()
+
+    @QtCore.Slot(QtGui.QSystemTrayIcon.ActivationReason)
+    def on_activated(self, reason):
+        if (reason == QtGui.QSystemTrayIcon.Trigger or
+            reason == QtGui.QSystemTrayIcon.Context):
+            self.menu.popup(QtGui.QCursor.pos())
+
+    @property
+    def tray_icon(self):
+        return self._trayicon
+
+    @tray_icon.setter
+    def tray_icon(self, icon_path):
+        self._trayicon = icon_path
+        if icon_path:
+            self._icon = QtGui.QIcon(icon_path)
+        else:
+            self._icon = QtGui.QIcon.fromTheme("inode-directory")
+        self.setIcon(self._icon)
+
+    def add_app_action(self, text, func, theme_icon=None):
+        action = QtGui.QAction(text, self)
+        action.triggered.connect(func)
+        if theme_icon:
+            action.setIcon(QtGui.QIcon().fromTheme(theme_icon))
+        self.app_actions.append(action)
+
+    def populate_menu(self):
+        self.menu.clear()
+        rows = G.model.rowCount()
+        for row in range(rows):
+            self.menu.addAction(G.model.item(row).data())
+        self.menu.addSeparator()
+        self.menu.addActions(self.app_actions)
+
+
+class ItemContextMenu(QtGui.QMenu):
+    def __init__(self, parent=None):
+        QtGui.QMenu.__init__(self, parent)
+
+        self.title_action = QtGui.QAction("", self)
+        self.title_action.setEnabled(False)
+        self.title_action.setFont(G.bold_font)
+
+        self.size_action = QtGui.QAction("", self)
+        self.size_action.setEnabled(False)
+
+        self.addAction(self.title_action)
+        self.addAction(self.size_action)
+        self.addSeparator()
+
+        ### Open file
+        self.open_action = QtGui.QAction("Open", self)
+        self.open_action.triggered.connect(lambda: self.action.launch())
+        self.addAction(self.open_action)
+
+    def act(self, action, pos):
+        self.action = action
+        self.title_action.setText(self.action.text())
+        self.size_action.setText(self.action.readable_size())
+        self.popup(pos)
+
+
+def main():
+    sys.exit(SFBM().exec_())
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,7 @@
+__pycache__/
+*.py[oc]
+.settings/
+build/
+dist/
+#debian/
+MANIFEST
