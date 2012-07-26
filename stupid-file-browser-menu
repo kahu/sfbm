@@ -42,7 +42,7 @@ class SFBM(QtGui.QApplication):
     def add_rootentry(self, path, icon=None, index=0, options=None):
         fi = QtCore.QFileInfo(path)
         if fi.exists() and fi.isDir():
-            if not fi.absoluteFilePath() in self.roots:
+            if not fi.absoluteFilePath() in self.roots.values():
                 root = RootEntry(fi, icon_path=icon,
                                  parent=G.systray, options=options)
                 G.model.insertRow(index, root.item)
