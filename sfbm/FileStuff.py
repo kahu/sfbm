@@ -23,14 +23,14 @@ def unescaper(s, repfunc):
         return s
 
     def _inner():
-        it = zip(s, s[1:])
+        it = iter(zip(s, s[1:]))
         for cur, nex in it:
             key = cur + nex
             rep = repfunc(key)
             if rep is not None:
                 yield rep
                 try:
-                    next(it)
+                    it.next()
                 except StopIteration:
                     return
             else:
