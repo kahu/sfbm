@@ -144,10 +144,10 @@ class DirectoryMenu(QtGui.QMenu):
     @QtCore.Slot()
     def populate(self):
         self.clear()
-        dir = QtCore.QDir(self.menuAction().data().absoluteFilePath())
-        dir.setSorting(G.active_root.sorting)
-        dir.setFilter(G.active_root.filter)
-        file_list = dir.entryInfoList()
+        directory = QtCore.QDir(self.menuAction().data().absoluteFilePath())
+        directory.setSorting(G.active_root.sorting)
+        directory.setFilter(G.active_root.filter)
+        file_list = directory.entryInfoList()
         try:
             G.populating = True
             aborter = MenuEventFilter(self)
@@ -268,10 +268,10 @@ class MenuEntry(QtGui.QAction):
                 bs = bs / 1024
             return '{:4n} PB'.format(round(bs, 2))
         elif fileinfo.isDir():
-            dir = QtCore.QDir(fileinfo.absoluteFilePath())
-            dir.setSorting(G.active_root.sorting)
-            dir.setFilter(G.active_root.filter)
-            size = dir.count()
+            directory = QtCore.QDir(fileinfo.absoluteFilePath())
+            directory.setSorting(G.active_root.sorting)
+            directory.setFilter(G.active_root.filter)
+            size = directory.count()
             return "{0} items".format(size)
         else:
             return ""
