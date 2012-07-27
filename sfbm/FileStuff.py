@@ -153,12 +153,13 @@ class DirectoryMenu(QtGui.QMenu):
             aborter = MenuEventFilter(self)
             G.abort = False
             G.App.installEventFilter(aborter)
+            in_path = self.menuAction().data().absoluteFilePath() in os.get_exec_path()
             for i, item in enumerate(file_list):
                 G.App.processEvents()
                 if G.abort:
                     self.die()
                     return
-                file_list[i] = MenuEntry(item, parent=self)
+                file_list[i] = MenuEntry(item, parent=self, in_path=in_path)
             self.addActions(file_list)
         finally:
             G.App.removeEventFilter(aborter)
@@ -243,15 +244,16 @@ class DirectoryMenu(QtGui.QMenu):
 
 
 class MenuEntry(QtGui.QAction):
-    def __init__(self, fileinfo, parent=None):
+    def __init__(self, fileinfo, parent=None, in_path=False):
         QtGui.QAction.__init__(self, parent)
 
         self.setData(fileinfo)
         self.setText(fileinfo.fileName().replace("&", "&&"))
         if fileinfo.isDir():
             self.setMenu(DirectoryMenu())
-        elif fileinfo.isExecutable and maybe_execute(fileinfo, execute=False):
-            self.setFont(G.bold_font)
+        elif (fileinfo.isExecutable and not in_path and
+              maybe_execute(fileinfo, execute=False)):
+                self.setFont(G.bold_font)
         icon = G.icon_provider.icon(fileinfo)
         self.setIcon(icon)
 
