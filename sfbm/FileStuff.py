@@ -236,9 +236,9 @@ class DirectoryMenu(QtGui.QMenu):
         drag = QtGui.QDrag(self)
         drag.setPixmap(dragged.icon().pixmap(48, 48))
         drag.setMimeData(mimeData)
-        dropAction = drag.start(QtCore.Qt.MoveAction |
-                                QtCore.Qt.CopyAction |
-                                QtCore.Qt.LinkAction)
+        drag.start(QtCore.Qt.MoveAction |
+                   QtCore.Qt.CopyAction |
+                   QtCore.Qt.LinkAction)
         G.drag_start_action = None
         G.drag_start_position = None
 
