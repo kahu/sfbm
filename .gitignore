@@ -5,3 +5,4 @@ build/
 dist/
 #debian/
 MANIFEST
+sfbm/data/newprefs.ui
