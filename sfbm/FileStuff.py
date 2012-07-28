@@ -153,7 +153,7 @@ class DirectoryMenu(QtGui.QMenu):
             aborter = MenuEventFilter(self)
             G.abort = False
             G.App.installEventFilter(aborter)
-            in_path = self.menuAction().data().absoluteFilePath() in os.get_exec_path()
+            in_path = self.menuAction().data().absoluteFilePath() in os.getenv("PATH")
             for i, item in enumerate(file_list):
                 G.App.processEvents()
                 if G.abort:
