@@ -247,6 +247,8 @@ class MenuEntry(QtGui.QAction):
     def __init__(self, fileinfo, parent=None, in_path=False):
         QtGui.QAction.__init__(self, parent)
 
+        self.triggered.connect(lambda: self.launch())
+
         self.setData(fileinfo)
         self.setText(fileinfo.fileName().replace("&", "&&"))
         if fileinfo.isDir():
