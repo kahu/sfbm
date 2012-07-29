@@ -175,7 +175,7 @@ class ItemContextMenu(QtGui.QMenu):
 
         ### Open file
         self.open_action = QtGui.QAction("Open", self)
-        self.open_action.triggered.connect(lambda: self.action.launch())
+        self.open_action.triggered.connect(lambda: self.action.trigger())
         self.addAction(self.open_action)
 
         ### Permissions
