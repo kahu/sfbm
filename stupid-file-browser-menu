@@ -78,17 +78,11 @@ class MainTray(QtGui.QSystemTrayIcon):
         self.tray_icon = icon_path
         self.app_actions = []
         self.menu.aboutToShow.connect(self.populate_menu)
-        self.menu.triggered.connect(self.on_triggered)
         self.activated.connect(self.on_activated)
         self.add_app_action("Settings", G.prefs_dialog.activate,
                             "preferences-other")
         self.add_app_action("Quit", G.App.quit, "application-exit")
         self.show()
-
-    @QtCore.Slot(QtGui.QAction)
-    def on_triggered(self, action):
-        if not action in self.app_actions:
-            action.launch()
 
     @QtCore.Slot(QtGui.QSystemTrayIcon.ActivationReason)
     def on_activated(self, reason):
@@ -186,7 +180,7 @@ class ItemContextMenu(QtGui.QMenu):
 
         ### Open file
         self.open_action = QtGui.QAction("Open", self)
-        self.open_action.triggered.connect(lambda: self.action.launch())
+        self.open_action.triggered.connect(lambda: self.action.trigger())
         self.addAction(self.open_action)
 
         ### Permissions
