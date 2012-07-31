@@ -73,6 +73,7 @@ class MainTray(QtGui.QSystemTrayIcon):
         self.tray_icon = icon_path
         self.app_actions = []
         self.menu.aboutToShow.connect(self.populate_menu)
+        self.setContextMenu(self.menu)
         self.activated.connect(self.on_activated)
         self.add_app_action("Settings", G.prefs_dialog.activate,
                             "preferences-other")
@@ -81,8 +82,7 @@ class MainTray(QtGui.QSystemTrayIcon):
 
     @QtCore.Slot(QtGui.QSystemTrayIcon.ActivationReason)
     def on_activated(self, reason):
-        if (reason == QtGui.QSystemTrayIcon.Trigger or
-            reason == QtGui.QSystemTrayIcon.Context):
+        if reason == QtGui.QSystemTrayIcon.Trigger:
             self.menu.popup(QtGui.QCursor.pos())
 
     @property
