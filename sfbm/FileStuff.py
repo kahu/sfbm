@@ -234,7 +234,7 @@ class DirectoryMenu(QtGui.QMenu):
         mimeData.setUrls([url])
 
         drag = QtGui.QDrag(self)
-        drag.setPixmap(dragged.icon().pixmap(48, 48))
+        drag.setPixmap(dragged.drag_pixmap())
         drag.setMimeData(mimeData)
         drag.start(QtCore.Qt.MoveAction |
                    QtCore.Qt.CopyAction |
@@ -258,6 +258,18 @@ class MenuEntry(QtGui.QAction):
                 self.setFont(G.bold_font)
         icon = G.icon_provider.icon(fileinfo)
         self.setIcon(icon)
+
+    def drag_pixmap(self):
+        widget = QtGui.QWidget()
+        layout = QtGui.QHBoxLayout(widget)
+        text_label = QtGui.QLabel(self.text())
+        icon_label = QtGui.QLabel()
+        icon_label.setPixmap(QtGui.QPixmap(self.icon().pixmap(24, 24)))
+        layout.addWidget(icon_label)
+        layout.addWidget(text_label)
+        widget.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        pixmap = QtGui.QPixmap.grabWidget(widget)
+        return pixmap
 
     def readable_size(self):
         fileinfo = self.data()
