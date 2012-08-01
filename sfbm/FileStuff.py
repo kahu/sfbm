@@ -125,8 +125,10 @@ class MenuEventFilter(QtCore.QObject):
             t == QtCore.QEvent.ActionAdded or
             t == QtCore.QEvent.KeyPress):
             return False
-        else:
-            return True
+        if t in {QtCore.QEvent.MetaCall,
+                 15, 16, QtCore.QEvent.Timer}:
+            return False
+        return True
 
 
 class DirectoryMenu(QtGui.QMenu):
@@ -177,6 +179,8 @@ class DirectoryMenu(QtGui.QMenu):
             if G.populating:
                 G.abort = True
             return
+        if G.populating:
+            return
         QtGui.QMenu.keyPressEvent(self, event)
 
     def contextMenuEvent(self, event):
@@ -184,6 +188,7 @@ class DirectoryMenu(QtGui.QMenu):
         action = actionAtPos(pos)
         if action:
             G.item_context_menu.act(action, pos)
+            event.accept()
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
