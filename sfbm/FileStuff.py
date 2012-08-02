@@ -3,8 +3,6 @@ import os
 from PyQt4 import QtCore, QtGui
 import xdg.Mime as Mime
 import xdg.DesktopEntry as DesktopEntry
-import xdg.IconTheme as IconTheme
-import xdg.Exceptions
 import sfbm.Global as G
 QtCore.Signal = QtCore.pyqtSignal
 QtCore.Slot = QtCore.pyqtSlot
