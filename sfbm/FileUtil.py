@@ -106,14 +106,6 @@ def maybe_execute(fileinfo, execute=False):
     return False
 
 
-def actionAtPos(pos):
-    menu = G.App.widgetAt(pos)
-    if isinstance(menu, QtGui.QMenu):
-        action = menu.actionAt(menu.mapFromGlobal(pos))
-        if isinstance(action.data(), QtCore.QFileInfo):
-            return action
-
-
 def readable_size(fileinfo):
     fileinfo.refresh()
     if fileinfo.isFile():

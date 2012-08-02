@@ -2,13 +2,23 @@ import subprocess
 import os
 from PyQt4 import QtCore, QtGui
 import sfbm.Global as G
-from sfbm.FileUtil import launch, actionAtPos, maybe_execute
+from sfbm.FileUtil import launch, maybe_execute
 QtCore.Signal = QtCore.pyqtSignal
 QtCore.Slot = QtCore.pyqtSlot
 
 
+def actionAtPos(pos):
+    menu = G.App.widgetAt(pos)
+    if isinstance(menu, QtGui.QMenu):
+        action = menu.actionAt(menu.mapFromGlobal(pos))
+        if isinstance(action.data(), QtCore.QFileInfo):
+            return action
+
+
 class MenuEventFilter(QtCore.QObject):
     def eventFilter(self, obj, event):
+        if obj is G.App:
+            return False
         t = event.type()
         if (t == QtCore.QEvent.ChildAdded or
             t == QtCore.QEvent.ActionAdded or
