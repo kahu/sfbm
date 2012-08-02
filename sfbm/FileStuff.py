@@ -214,7 +214,7 @@ class DirectoryMenu(QtGui.QMenu):
         if event.button() == QtCore.Qt.LeftButton:
             action = actionAtPos(event.globalPos())
             if action and action.menu():
-                action.trigger()
+                launch(action.data())
                 action.menu().hide()
             self.hide()
             G.systray.menu.hide()
@@ -227,9 +227,9 @@ class DirectoryMenu(QtGui.QMenu):
             action = actionAtPos(event.globalPos())
             if action:
                 if action.menu():
-                    action.trigger()
+                    launch(action.data())
                 else:
-                    self.menuAction().trigger()
+                    launch(self.menuAction().data())
             event.accept()
         else:
             QtGui.QMenu.mouseReleaseEvent(self, event)
