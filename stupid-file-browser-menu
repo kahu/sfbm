@@ -6,7 +6,8 @@ import subprocess
 from PyQt4 import QtCore, QtGui, uic
 from sfbm.Config import Config
 from sfbm.Ui import PrefsDialog
-from sfbm.FileStuff import RootEntry, launch
+from sfbm.FileUtil import launch, readable_size
+from sfbm.FileMenu import RootEntry
 import sfbm.Global as G
 QtCore.Signal = QtCore.pyqtSignal
 QtCore.Slot = QtCore.pyqtSlot
@@ -193,7 +194,7 @@ class ItemContextMenu(QtGui.QMenu):
     def act(self, action, pos):
         self.action = action
         self.title_action.setText(self.action.text())
-        self.size_action.setText(self.action.readable_size())
+        self.size_action.setText(readable_size(self.action.data()))
         self.perm_menu.fileinfo = self.action.data()
         self.popup(pos)
 
