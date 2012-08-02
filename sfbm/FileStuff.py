@@ -125,10 +125,22 @@ class MenuEventFilter(QtCore.QObject):
             t == QtCore.QEvent.ActionAdded or
             t == QtCore.QEvent.KeyPress):
             return False
-        if t in {QtCore.QEvent.MetaCall,
-                 15, 16, QtCore.QEvent.Timer}:
-            return False
         return True
+
+
+def launch(fileinfo):
+    fileinfo.refresh()
+    if fileinfo.isSymLink():
+        filename = fileinfo.symLinkTarget()
+    else:
+        filename = fileinfo.absoluteFilePath()
+    if fileinfo.isDir():
+        url = QtCore.QUrl.fromUserInput(filename)
+        QtGui.QDesktopServices.openUrl(url)
+        return
+    elif not maybe_execute(fileinfo, execute=True):
+        url = QtCore.QUrl.fromUserInput(filename)
+        QtGui.QDesktopServices.openUrl(url)
 
 
 class DirectoryMenu(QtGui.QMenu):
@@ -252,8 +264,6 @@ class MenuEntry(QtGui.QAction):
     def __init__(self, fileinfo, parent=None, in_path=False):
         QtGui.QAction.__init__(self, parent)
 
-        self.triggered.connect(lambda: self.launch())
-
         self.setData(fileinfo)
         self.setText(fileinfo.fileName().replace("&", "&&"))
         if fileinfo.isDir():
@@ -303,21 +313,6 @@ class MenuEntry(QtGui.QAction):
         else:
             path = fileinfo.absolutePath()
         subprocess.Popen(["/usr/bin/konsole", "--workdir", path])
-
-    def launch(self):
-        fileinfo = self.data()
-        fileinfo.refresh()
-        if fileinfo.isSymLink():
-            filename = fileinfo.symLinkTarget()
-        else:
-            filename = fileinfo.absoluteFilePath()
-        if fileinfo.isDir():
-            url = QtCore.QUrl.fromUserInput(filename)
-            QtGui.QDesktopServices.openUrl(url)
-            return
-        elif not maybe_execute(fileinfo, execute=True):
-            url = QtCore.QUrl.fromUserInput(filename)
-            QtGui.QDesktopServices.openUrl(url)
 
 
 class RootEntry(MenuEntry):
