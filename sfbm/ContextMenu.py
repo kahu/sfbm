@@ -1,6 +1,6 @@
 import os
 from PyQt4 import QtGui
-from sfbm.FileUtil import launch, readable_size
+from sfbm.FileUtil import launch, readable_size, terminal_there
 import sfbm.Global as G
 
 
@@ -67,6 +67,11 @@ class ContextMenu(QtGui.QMenu):
         self.open_action = QtGui.QAction("Open", self)
         self.open_action.triggered.connect(lambda: launch(self.action.data()))
         self.addAction(self.open_action)
+
+        ### Terminal
+        self.term_action = QtGui.QAction("Open Terminal Here", self)
+        self.term_action.triggered.connect(lambda: terminal_there(self.action.data()))
+        self.addAction(self.term_action)
 
         ### Permissions
         self.perm_action = QtGui.QAction("Permissions", self)

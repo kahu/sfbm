@@ -138,3 +138,9 @@ def launch(fileinfo):
     elif not maybe_execute(fileinfo, execute=True):
         url = QtCore.QUrl.fromUserInput(filename)
         QtGui.QDesktopServices.openUrl(url)
+
+
+def terminal_there(fi):
+    fi.refresh()
+    directory = fi.absoluteFilePath() if fi.isDir() else fi.absolutePath()
+    subprocess.Popen(["/usr/bin/konsole", "--workdir", directory])

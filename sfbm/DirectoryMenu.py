@@ -69,11 +69,6 @@ class DirectoryMenu(QtGui.QMenu):
             if G.populating:
                 G.abort = True
                 return
-        if key == QtCore.Qt.Key_F4:
-            self.menuAction().terminal()
-            if G.populating:
-                G.abort = True
-            return
         if G.populating:
             return
         QtGui.QMenu.keyPressEvent(self, event)
@@ -170,15 +165,6 @@ class MenuEntry(QtGui.QAction):
         widget.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         pixmap = QtGui.QPixmap.grabWidget(widget)
         return pixmap
-
-    def terminal(self):
-        fileinfo = self.data()
-        fileinfo.refresh()
-        if fileinfo.isDir():
-            path = fileinfo.absoluteFilePath()
-        else:
-            path = fileinfo.absolutePath()
-        subprocess.Popen(["/usr/bin/konsole", "--workdir", path])
 
 
 class RootEntry(MenuEntry):
