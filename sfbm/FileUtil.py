@@ -130,10 +130,7 @@ def readable_size(fileinfo):
 
 def launch(fileinfo):
     fileinfo.refresh()
-    if fileinfo.isSymLink():
-        filename = fileinfo.symLinkTarget()
-    else:
-        filename = fileinfo.absoluteFilePath()
+    filename = fileinfo.absoluteFilePath()
     if fileinfo.isDir():
         url = QtCore.QUrl.fromUserInput(filename)
         QtGui.QDesktopServices.openUrl(url)
