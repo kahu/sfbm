@@ -217,9 +217,11 @@ class RootEntry(MenuEntry):
 
     @property
     def filter(self):
-        _filter = QtCore.QDir.AllEntries | QtCore.QDir.System
+        _filter = (QtCore.QDir.AllEntries |
+                   QtCore.QDir.System |
+                   QtCore.QDir.NoDot)
         if self.options["ShowHidden"]:
             _filter = _filter | QtCore.QDir.Hidden
         if not self.options["IncludePrevious"]:
-            _filter = _filter | QtCore.QDir.NoDotAndDotDot
+            _filter = _filter | QtCore.QDir.NoDotDot
         return _filter
