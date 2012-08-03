@@ -80,5 +80,3 @@ class ContextMenu(QtGui.QMenu):
         self.size_action.setText(readable_size(self.action.data()))
         self.perm_menu.fileinfo = self.action.data()
         self.popup(pos)
-
-
