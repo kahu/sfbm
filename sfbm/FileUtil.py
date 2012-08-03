@@ -89,7 +89,10 @@ def maybe_execute(fileinfo, execute=False):
         mimetype = str(Mime.get_type(filepath))
         if mimetype in G.EXECUTABLES:
             if execute:
-                return _really_execute([filepath], cwd=os.getenv("HOME"))
+                path = fileinfo.absolutePath()
+                if path in os.get_exec_path():
+                    path = os.getenv("HOME", path)
+                return _really_execute([filepath], cwd=path)
             else:
                 return True
         if filepath.endswith(".desktop"):
