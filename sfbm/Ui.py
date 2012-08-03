@@ -20,6 +20,10 @@ class PrefsDialog(QtGui.QDialog):
         self.checkboxes = {"ShowHidden": self.ui.showHiddenBox,
                            "IncludePrevious": self.ui.includePreviousBox,
                            "DirsFirst": self.ui.dirsFirstBox}
+        themed_widgets = [[self.ui.addButton, "list-add", "Add"],
+                          [self.ui.removeButton, "list-remove", "Remove"],
+                          [self.ui.upButton, "go-up", "Move Up"],
+                          [self.ui.downButton, "go-down", "Move Down"]]
         self.init_checkboxes(G.default_options)
         self.ui.okButton.clicked.connect(self.accept)
         self.finished.connect(self.on_close)
@@ -28,11 +32,9 @@ class PrefsDialog(QtGui.QDialog):
         self.ui.showHiddenBox.stateChanged.connect(self.apply_options)
         self.ui.upButton.clicked.connect(lambda: self.move_item(-1))
         self.ui.downButton.clicked.connect(lambda: self.move_item(1))
-        self.ui.addButton.setIcon(QtGui.QIcon().fromTheme("list-add"))
-        self.ui.removeButton.setIcon(QtGui.QIcon().fromTheme("list-remove"))
         self.ui.okButton.setIcon(QtGui.QIcon().fromTheme("dialog-ok"))
-        self.ui.downButton.setIcon(QtGui.QIcon().fromTheme("go-down"))
-        self.ui.upButton.setIcon(QtGui.QIcon().fromTheme("go-up"))
+        for wid in themed_widgets:
+            self.try_set_icon(*wid)
         self.ui.listView.setModel(G.model)
         self.ui.listView.setEditTriggers(QtGui.QListView.NoEditTriggers)
         self.selection = self.ui.listView.selectionModel()
@@ -81,6 +83,13 @@ class PrefsDialog(QtGui.QDialog):
             item = G.model.itemFromIndex(index)
             item.data().icon_path = fil
             self.update()
+
+    def try_set_icon(self, wid, icon_name, text):
+        icon = QtGui.QIcon.fromTheme(icon_name)
+        if icon.isNull():
+            wid.setText(text)
+        else:
+            wid.setIcon(icon)
 
     def init_checkboxes(self, options):
         for (opt, box) in self.checkboxes.items():
