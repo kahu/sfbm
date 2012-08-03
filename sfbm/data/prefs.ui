@@ -165,7 +165,7 @@
          </property>
         </spacer>
        </item>
-       <item>
+       <item alignment="Qt::AlignRight">
         <widget class="QPushButton" name="okButton">
          <property name="minimumSize">
           <size>
@@ -179,6 +179,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
          <property name="text">
           <string>OK</string>
          </property>
@@ -186,6 +189,9 @@
           <iconset theme="dialog-ok">
            <normaloff/>
           </iconset>
+         </property>
+         <property name="default">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
