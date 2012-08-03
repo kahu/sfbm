@@ -1,8 +1,7 @@
 import os
 import sfbm.Global as G
 from PyQt4 import QtCore, QtGui, uic
-QtCore.Signal = QtCore.pyqtSignal
-QtCore.Slot = QtCore.pyqtSlot
+Slot = QtCore.pyqtSlot
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -21,6 +20,10 @@ class PrefsDialog(QtGui.QDialog):
         self.checkboxes = {"ShowHidden": self.ui.showHiddenBox,
                            "IncludePrevious": self.ui.includePreviousBox,
                            "DirsFirst": self.ui.dirsFirstBox}
+        themed_widgets = [[self.ui.addButton, "list-add", "Add"],
+                          [self.ui.removeButton, "list-remove", "Remove"],
+                          [self.ui.upButton, "go-up", "Move Up"],
+                          [self.ui.downButton, "go-down", "Move Down"]]
         self.init_checkboxes(G.default_options)
         self.ui.okButton.clicked.connect(self.accept)
         self.finished.connect(self.on_close)
@@ -29,28 +32,26 @@ class PrefsDialog(QtGui.QDialog):
         self.ui.showHiddenBox.stateChanged.connect(self.apply_options)
         self.ui.upButton.clicked.connect(lambda: self.move_item(-1))
         self.ui.downButton.clicked.connect(lambda: self.move_item(1))
-        self.ui.addButton.setIcon(QtGui.QIcon().fromTheme("list-add"))
-        self.ui.removeButton.setIcon(QtGui.QIcon().fromTheme("list-remove"))
         self.ui.okButton.setIcon(QtGui.QIcon().fromTheme("dialog-ok"))
-        self.ui.downButton.setIcon(QtGui.QIcon().fromTheme("go-down"))
-        self.ui.upButton.setIcon(QtGui.QIcon().fromTheme("go-up"))
+        for wid in themed_widgets:
+            self.try_set_icon(*wid)
         self.ui.listView.setModel(G.model)
         self.ui.listView.setEditTriggers(QtGui.QListView.NoEditTriggers)
         self.selection = self.ui.listView.selectionModel()
         self.selection.currentChanged.connect(self.update)
 
-    @QtCore.Slot()
+    @Slot()
     def apply_options(self):
         for (opt, box) in self.checkboxes.items():
             index = self.ui.listView.currentIndex()
             root = G.model.itemFromIndex(index)
             root.data().options[opt] = box.isChecked()
 
-    @QtCore.Slot(int)
+    @Slot(int)
     def on_close(self, i):
         G.settings.write_settings()
 
-    @QtCore.Slot(int)
+    @Slot(int)
     def move_item(self, direction):
         index = self.ui.listView.currentIndex()
         row = index.row()
@@ -60,7 +61,7 @@ class PrefsDialog(QtGui.QDialog):
             G.model.insertRow(row + direction, item)
             self.ui.listView.setCurrentIndex(target)
 
-    @QtCore.Slot()
+    @Slot()
     def on_addButton_clicked(self):
         newdir = QtGui.QFileDialog.getExistingDirectory(parent=self,
                                 directory=os.getenv("HOME"),
@@ -69,12 +70,12 @@ class PrefsDialog(QtGui.QDialog):
             index = self.ui.listView.currentIndex().row()
             G.App.add_rootentry(newdir, index=index)
 
-    @QtCore.Slot()
+    @Slot()
     def on_removeButton_clicked(self):
         index = self.ui.listView.currentIndex().row()
         G.App.remove_rootentry(index)
 
-    @QtCore.Slot()
+    @Slot()
     def on_iconButton_clicked(self):
         fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
         if fil:
@@ -82,6 +83,13 @@ class PrefsDialog(QtGui.QDialog):
             item = G.model.itemFromIndex(index)
             item.data().icon_path = fil
             self.update()
+
+    def try_set_icon(self, wid, icon_name, text):
+        icon = QtGui.QIcon.fromTheme(icon_name)
+        if icon.isNull():
+            wid.setText(text)
+        else:
+            wid.setIcon(icon)
 
     def init_checkboxes(self, options):
         for (opt, box) in self.checkboxes.items():
