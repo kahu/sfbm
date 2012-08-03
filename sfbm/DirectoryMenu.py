@@ -1,4 +1,3 @@
-import subprocess
 import os
 from PyQt4 import QtCore, QtGui
 import sfbm.Global as G
