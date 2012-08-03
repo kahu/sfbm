@@ -174,7 +174,7 @@ class RootEntry(MenuEntry):
         self.item.setData(self)
         self.item.setText(self.data().absoluteFilePath())
         self.icon_path = icon_path
-        self.options = options if options else G.default_options
+        self.options = options if options else G.default_options.copy()
         self.hovered.connect(self.set_active)
 
     @Slot()

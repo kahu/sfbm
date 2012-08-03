@@ -24,12 +24,14 @@ class PrefsDialog(QtGui.QDialog):
                           [self.ui.removeButton, "list-remove", "Remove"],
                           [self.ui.upButton, "go-up", "Move Up"],
                           [self.ui.downButton, "go-down", "Move Down"]]
-        self.init_checkboxes(G.default_options)
         self.ui.okButton.clicked.connect(self.accept)
         self.finished.connect(self.on_close)
-        self.ui.dirsFirstBox.stateChanged.connect(self.apply_options)
-        self.ui.includePreviousBox.stateChanged.connect(self.apply_options)
-        self.ui.showHiddenBox.stateChanged.connect(self.apply_options)
+        self.ui.dirsFirstBox.clicked.connect(lambda c:
+                                             self.toggle_checkbox("DirsFirst", c))
+        self.ui.includePreviousBox.clicked.connect(lambda c:
+                                                   self.toggle_checkbox("IncludePrevious", c))
+        self.ui.showHiddenBox.clicked.connect(lambda c:
+                                              self.toggle_checkbox("ShowHidden", c))
         self.ui.upButton.clicked.connect(lambda: self.move_item(-1))
         self.ui.downButton.clicked.connect(lambda: self.move_item(1))
         self.ui.okButton.setIcon(QtGui.QIcon().fromTheme("dialog-ok"))
@@ -40,12 +42,11 @@ class PrefsDialog(QtGui.QDialog):
         self.selection = self.ui.listView.selectionModel()
         self.selection.currentChanged.connect(self.update)
 
-    @Slot()
-    def apply_options(self):
-        for (opt, box) in self.checkboxes.items():
-            index = self.ui.listView.currentIndex()
-            root = G.model.itemFromIndex(index)
-            root.data().options[opt] = box.isChecked()
+    @Slot(str, bool)
+    def toggle_checkbox(self, option, checked):
+        index = self.selection.currentIndex()
+        root = G.model.itemFromIndex(index).data()
+        root.options[option] = checked
 
     @Slot(int)
     def on_close(self, i):
@@ -53,7 +54,7 @@ class PrefsDialog(QtGui.QDialog):
 
     @Slot(int)
     def move_item(self, direction):
-        index = self.ui.listView.currentIndex()
+        index = self.selection.currentIndex()
         row = index.row()
         target = index.sibling(row + direction, index.column())
         if target.isValid():
@@ -67,38 +68,30 @@ class PrefsDialog(QtGui.QDialog):
                                 directory=os.getenv("HOME"),
                                 options=QtGui.QFileDialog.ShowDirsOnly)
         if newdir:
-            index = self.ui.listView.currentIndex().row()
+            index = self.selection.currentIndex().row()
             G.App.add_rootentry(newdir, index=index)
 
     @Slot()
     def on_removeButton_clicked(self):
-        index = self.ui.listView.currentIndex().row()
+        index = self.selection.currentIndex().row()
         G.App.remove_rootentry(index)
 
     @Slot()
     def on_iconButton_clicked(self):
         fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
         if fil:
-            index = self.ui.listView.currentIndex()
+            index = self.selection.currentIndex()
             item = G.model.itemFromIndex(index)
             item.data().icon_path = fil
             self.update()
 
     def try_set_icon(self, wid, icon_name, text):
         icon = QtGui.QIcon.fromTheme(icon_name)
-        if icon.isNull():
-            wid.setText(text)
-        else:
-            wid.setIcon(icon)
+        wid.setText(text) if icon.isNull() else wid.setIcon(icon)
 
     def init_checkboxes(self, options):
         for (opt, box) in self.checkboxes.items():
-            if options[opt]:
-                box.setCheckState(True)
-                box.setTristate(False)
-            else:
-                box.setCheckState(False)
-                box.setTristate(False)
+            box.setChecked(options[opt])
 
     def activate(self):
         self.ui.listView.setCurrentIndex(G.model.index(0, 0))
@@ -106,7 +99,7 @@ class PrefsDialog(QtGui.QDialog):
         self.show()
 
     def update(self):
-        index = self.ui.listView.currentIndex()
+        index = self.selection.currentIndex()
         if index.row() > -1:
             root = G.model.itemFromIndex(index).data()
             self.init_checkboxes(root.options)
