@@ -3,8 +3,7 @@ import os
 from PyQt4 import QtCore, QtGui
 import sfbm.Global as G
 from sfbm.FileUtil import launch, maybe_execute
-QtCore.Signal = QtCore.pyqtSignal
-QtCore.Slot = QtCore.pyqtSlot
+Slot = QtCore.pyqtSlot
 
 
 def actionAtPos(pos):
@@ -34,12 +33,12 @@ class DirectoryMenu(QtGui.QMenu):
         self.aboutToShow.connect(self.populate)
         self.aboutToHide.connect(self.die)
 
-    @QtCore.Slot()
+    @Slot()
     def die(self):
         for c in self.children():
             c.deleteLater()
 
-    @QtCore.Slot()
+    @Slot()
     def populate(self):
         self.clear()
         directory = QtCore.QDir(self.menuAction().data().absoluteFilePath())
@@ -193,7 +192,7 @@ class RootEntry(MenuEntry):
         self.options = options if options else G.default_options
         self.hovered.connect(self.set_active)
 
-    @QtCore.Slot()
+    @Slot()
     def set_active(self):
         G.active_root = self
 

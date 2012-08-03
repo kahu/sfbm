@@ -10,8 +10,7 @@ from sfbm.FileUtil import launch
 from sfbm.ContextMenu import ContextMenu
 from sfbm.DirectoryMenu import RootEntry
 import sfbm.Global as G
-QtCore.Signal = QtCore.pyqtSignal
-QtCore.Slot = QtCore.pyqtSlot
+Slot = QtCore.pyqtSlot
 
 
 class SFBM(QtGui.QApplication):
@@ -60,7 +59,7 @@ class SFBM(QtGui.QApplication):
         else:
             return False
 
-    @QtCore.Slot()
+    @Slot()
     def on_death(self):
         G.settings.write_settings()
         G.systray.hide()
@@ -83,12 +82,12 @@ class MainTray(QtGui.QSystemTrayIcon):
         self.add_app_action("Quit", G.App.quit, "application-exit")
         self.show()
 
-    @QtCore.Slot(QtGui.QAction)
+    @Slot(QtGui.QAction)
     def on_triggered(self, action):
         if not action in self.app_actions:
             launch(action.data())
 
-    @QtCore.Slot(QtGui.QSystemTrayIcon.ActivationReason)
+    @Slot(QtGui.QSystemTrayIcon.ActivationReason)
     def on_activated(self, reason):
         if reason == QtGui.QSystemTrayIcon.Trigger:
             self.menu.popup(QtGui.QCursor.pos())

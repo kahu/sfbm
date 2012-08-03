@@ -1,8 +1,7 @@
 import os
 import sfbm.Global as G
 from PyQt4 import QtCore, QtGui, uic
-QtCore.Signal = QtCore.pyqtSignal
-QtCore.Slot = QtCore.pyqtSlot
+Slot = QtCore.pyqtSlot
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -39,18 +38,18 @@ class PrefsDialog(QtGui.QDialog):
         self.selection = self.ui.listView.selectionModel()
         self.selection.currentChanged.connect(self.update)
 
-    @QtCore.Slot()
+    @Slot()
     def apply_options(self):
         for (opt, box) in self.checkboxes.items():
             index = self.ui.listView.currentIndex()
             root = G.model.itemFromIndex(index)
             root.data().options[opt] = box.isChecked()
 
-    @QtCore.Slot(int)
+    @Slot(int)
     def on_close(self, i):
         G.settings.write_settings()
 
-    @QtCore.Slot(int)
+    @Slot(int)
     def move_item(self, direction):
         index = self.ui.listView.currentIndex()
         row = index.row()
@@ -60,7 +59,7 @@ class PrefsDialog(QtGui.QDialog):
             G.model.insertRow(row + direction, item)
             self.ui.listView.setCurrentIndex(target)
 
-    @QtCore.Slot()
+    @Slot()
     def on_addButton_clicked(self):
         newdir = QtGui.QFileDialog.getExistingDirectory(parent=self,
                                 directory=os.getenv("HOME"),
@@ -69,12 +68,12 @@ class PrefsDialog(QtGui.QDialog):
             index = self.ui.listView.currentIndex().row()
             G.App.add_rootentry(newdir, index=index)
 
-    @QtCore.Slot()
+    @Slot()
     def on_removeButton_clicked(self):
         index = self.ui.listView.currentIndex().row()
         G.App.remove_rootentry(index)
 
-    @QtCore.Slot()
+    @Slot()
     def on_iconButton_clicked(self):
         fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
         if fil:
