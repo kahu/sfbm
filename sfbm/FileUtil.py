@@ -90,7 +90,7 @@ def maybe_execute(fileinfo, execute=False):
         if mimetype in G.EXECUTABLES:
             if execute:
                 path = fileinfo.absolutePath()
-                if path in os.get_exec_path():
+                if path in os.getenv("PATH", os.defpath):
                     path = os.getenv("HOME", path)
                 return _really_execute([filepath], cwd=path)
             else:

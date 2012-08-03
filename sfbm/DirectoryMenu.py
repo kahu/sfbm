@@ -5,8 +5,6 @@ from sfbm.FileUtil import launch, maybe_execute
 Slot = QtCore.pyqtSlot
 
 
-        it = iter(zip(s, s[1:]))
-                    it.next()
 def actionAtPos(pos):
     menu = G.App.widgetAt(pos)
     if isinstance(menu, QtGui.QMenu):
