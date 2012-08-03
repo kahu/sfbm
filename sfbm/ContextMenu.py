@@ -1,6 +1,6 @@
 import os
 from PyQt4 import QtGui
-from sfbm.FileUtil import launch, readable_size, terminal_there
+from sfbm.FileUtil import launch, maybe_execute, readable_size, terminal_there
 import sfbm.Global as G
 
 
@@ -52,6 +52,8 @@ class ContextMenu(QtGui.QMenu):
     def __init__(self, parent=None):
         QtGui.QMenu.__init__(self, parent)
 
+        self.aboutToShow.connect(self.prepare)
+
         self.title_action = QtGui.QAction("", self)
         self.title_action.setEnabled(False)
         self.title_action.setFont(G.bold_font)
@@ -66,22 +68,29 @@ class ContextMenu(QtGui.QMenu):
         ### Open file
         self.open_action = QtGui.QAction("Open", self)
         self.open_action.triggered.connect(lambda: launch(self.action.data()))
-        self.addAction(self.open_action)
 
         ### Terminal
         self.term_action = QtGui.QAction("Open Terminal Here", self)
         self.term_action.triggered.connect(lambda: terminal_there(self.action.data()))
-        self.addAction(self.term_action)
 
         ### Permissions
         self.perm_action = QtGui.QAction("Permissions", self)
         self.perm_menu = PermissionsMenu()
         self.perm_action.setMenu(self.perm_menu)
+
+    def prepare(self):
+        self.title_action.setText(self.action.text())
+        self.size_action.setText(readable_size(self.action.data()))
+        self.perm_menu.fileinfo = self.action.data()
+
+        if maybe_execute(self.action.data(), False):
+            self.open_action.setText("Run")
+        else:
+            self.open_action.setText("Open")
+        self.addAction(self.open_action)
+        self.addAction(self.term_action)
         self.addAction(self.perm_action)
 
     def act(self, action, pos):
         self.action = action
-        self.title_action.setText(self.action.text())
-        self.size_action.setText(readable_size(self.action.data()))
-        self.perm_menu.fileinfo = self.action.data()
         self.popup(pos)
