@@ -1,5 +1,6 @@
 import os
 import sfbm.Global as G
+from sfbm.FileUtil import list_terminals
 from PyQt4 import QtCore, QtGui, uic
 Slot = QtCore.pyqtSlot
 
@@ -39,6 +40,7 @@ class PrefsDialog(QtGui.QDialog):
             self.try_set_icon(*wid)
         self.ui.listView.setModel(G.model)
         self.ui.listView.setEditTriggers(QtGui.QListView.NoEditTriggers)
+        self.init_combobox()
         self.selection = self.ui.listView.selectionModel()
         self.selection.currentChanged.connect(self.update)
 
@@ -77,6 +79,16 @@ class PrefsDialog(QtGui.QDialog):
         G.App.remove_rootentry(index)
 
     @Slot()
+    def on_trayiconButton_clicked(self):
+        fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
+        if fil:
+            icon = QtGui.QIcon(fil)
+            if icon:
+                G.systray.setIcon(icon)
+                G.settings.setValue("Settings/Icon", fil)
+                self.ui.trayiconButton.setIcon(G.systray.icon())
+
+    @Slot()
     def on_iconButton_clicked(self):
         fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
         if fil:
@@ -84,6 +96,29 @@ class PrefsDialog(QtGui.QDialog):
             item = G.model.itemFromIndex(index)
             item.data().icon_path = fil
             self.update()
+
+    @Slot(int)
+    def on_terminalComboBox_activated(self, index):
+        name = self.ui.terminalComboBox.itemText(index)
+        cmdline = self.ui.terminalComboBox.itemData(index)
+        self.ui.terminalLineEdit.setText("{}".format(" ".join(cmdline)))
+        G.terminal = (name, cmdline)
+        G.settings.setValue("Settings/Terminal", G.terminal)
+
+    @Slot(str)
+    def on_terminalLineEdit_textEdited(self, text):
+        index = self.ui.terminalComboBox.findText("Other:")
+        if self.ui.terminalComboBox.currentIndex() != index:
+            cp = self.ui.terminalLineEdit.cursorPosition()
+            self.ui.terminalLineEdit.setText(text)
+            self.ui.terminalComboBox.setCurrentIndex(index)
+            self.ui.terminalLineEdit.setCursorPosition(cp)
+        name = self.ui.terminalComboBox.itemText(index)
+        cmd, dummy, args = text.lstrip().partition(" ")
+        cmdline = [cmd, args]
+        self.ui.terminalComboBox.setItemData(index, cmdline)
+        G.terminal = (name, cmdline)
+        G.settings.setValue("Settings/Terminal", G.terminal)
 
     def try_set_icon(self, wid, icon_name, text):
         icon = QtGui.QIcon.fromTheme(icon_name)
@@ -93,8 +128,21 @@ class PrefsDialog(QtGui.QDialog):
         for (opt, box) in self.checkboxes.items():
             box.setChecked(options[opt])
 
+    def init_combobox(self):
+        for (name, cmdline) in list_terminals():
+            self.ui.terminalComboBox.addItem(name, cmdline)
+
     def activate(self):
         self.ui.listView.setCurrentIndex(G.model.index(0, 0))
+        self.ui.trayiconButton.setIcon(G.systray.icon())
+
+        name, cmdline = G.terminal
+        index = self.ui.terminalComboBox.findText(name)
+        if name == "Other:":
+            self.ui.terminalComboBox.setItemData(index, cmdline)
+        self.ui.terminalLineEdit.setText("{}".format(" ".join(cmdline)))
+        self.ui.terminalComboBox.setCurrentIndex(index)
+
         self.update()
         self.show()
 
