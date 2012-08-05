@@ -99,6 +99,12 @@ class PrefsDialog(QtGui.QDialog):
             self.ui.trayiconButton.setIcon(G.systray.icon())
 
     @Slot()
+    def on_trayIconResetButton_clicked(self):
+        G.systray.icon_path = None
+        G.settings.setValue("Settings/Icon", None)
+        self.ui.trayiconButton.setIcon(G.systray.icon())
+
+    @Slot()
     def on_iconButton_clicked(self):
         index = self.selection.currentIndex()
         item = G.model.itemFromIndex(index)
@@ -107,6 +113,13 @@ class PrefsDialog(QtGui.QDialog):
         if fil:
             item.data().icon_path = fil
             self.update()
+
+    @Slot()
+    def on_iconResetButton_clicked(self):
+        index = self.selection.currentIndex()
+        item = G.model.itemFromIndex(index)
+        item.data().icon_path = None
+        self.update()
 
     @Slot(int)
     def on_terminalComboBox_activated(self, index):

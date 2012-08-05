@@ -191,6 +191,10 @@ class RootEntry(MenuEntry):
         if path:
             self.setIcon(QtGui.QIcon(path))
             self.item.setIcon(self.icon())
+        else:
+            icon = G.icon_provider.icon(self.data())
+            self.setIcon(icon)
+            self.item.setIcon(icon)
 
     @property
     def sorting(self):
