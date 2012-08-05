@@ -50,6 +50,36 @@ def format_stripper(key):
     return None
 
 
+terminals = (("LXTerminal",
+              "--working-directory=", "lxde"),
+             ("Terminal (XFCE)",
+              "xfce4-terminal", "--working-directory ", "xfce"),
+             ("Gnome Terminal",
+              "gnome-terminal", "--working-directory ", "gnome"),
+             ("Konsole",
+              "konsole", "--workdir ", "kde"))
+
+
+def list_terminals():
+    try:
+        for (name, cmd, args, dummy) in reversed(terminals):
+            if which(cmd):
+                yield (name, cmd, args)
+    finally:
+        yield ("Other:", "", "")
+
+
+def guess_terminal():
+    desktop = os.getenv("DESKTOP_SESSION", "")
+    shitterm = None
+    for (name, cmd, args, de) in terminals:
+        if de in desktop:
+            return (name, cmd, args)
+        elif which(cmd):
+            shitterm = (name, cmd, args)
+    return shitterm
+
+
 ###http://bugs.python.org/issue444582
 def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     def _access_check(fn, mode):

@@ -1,5 +1,6 @@
 import os
 import sfbm.Global as G
+from sfbm.FileUtil import list_terminals
 from PyQt4 import QtCore, QtGui, uic
 Slot = QtCore.pyqtSlot
 
@@ -39,6 +40,7 @@ class PrefsDialog(QtGui.QDialog):
             self.try_set_icon(*wid)
         self.ui.listView.setModel(G.model)
         self.ui.listView.setEditTriggers(QtGui.QListView.NoEditTriggers)
+        self.init_combobox()
         self.selection = self.ui.listView.selectionModel()
         self.selection.currentChanged.connect(self.update)
 
@@ -95,6 +97,25 @@ class PrefsDialog(QtGui.QDialog):
             item.data().icon_path = fil
             self.update()
 
+    @Slot(int)
+    def on_terminalComboBox_activated(self, index):
+        name = self.ui.terminalComboBox.itemText(index)
+        cmd, args = self.ui.terminalComboBox.itemData(index)
+        self.ui.terminalLineEdit.setText("{}{}".format(cmd, " " + args))
+        G.terminal = (name, cmd, args)
+        G.settings.setValue("Settings/Terminal", G.terminal)
+
+    @Slot(str)
+    def on_terminalLineEdit_textEdited(self, text):
+        self.ui.terminalLineEdit.setText(text)
+        index = self.ui.terminalComboBox.findText("Other:")
+        self.ui.terminalComboBox.setCurrentIndex(index)
+        name = self.ui.terminalComboBox.itemText(index)
+        cmd, dummy, args = text.partition(" ")
+        self.ui.terminalComboBox.setItemData(index, (cmd, " " + args))
+        G.terminal = (name, cmd, args)
+        G.settings.setValue("Settings/Terminal", G.terminal)
+
     def try_set_icon(self, wid, icon_name, text):
         icon = QtGui.QIcon.fromTheme(icon_name)
         wid.setText(text) if icon.isNull() else wid.setIcon(icon)
@@ -103,9 +124,20 @@ class PrefsDialog(QtGui.QDialog):
         for (opt, box) in self.checkboxes.items():
             box.setChecked(options[opt])
 
+    def init_combobox(self):
+        for (name, cmd, args) in list_terminals():
+            self.ui.terminalComboBox.addItem(name, (cmd, args))
+        name, cmd, args = G.terminal
+        index = self.ui.terminalComboBox.findText(name)
+        if name == "Other:":
+            self.ui.terminalComboBox.setItemData(index, (cmd, args))
+        self.ui.terminalLineEdit.setText("{}{}".format(cmd, " " + args))
+        self.ui.terminalComboBox.setCurrentIndex(index)
+
     def activate(self):
         self.ui.listView.setCurrentIndex(G.model.index(0, 0))
         self.ui.trayiconButton.setIcon(G.systray.icon())
+
         self.update()
         self.show()
 

@@ -14,6 +14,7 @@ icon_provider = None
 abort = False
 populating = False
 active_root = None
+terminal = None
 
 EXECUTABLES = {"application/x-executable",
                "application/executable",

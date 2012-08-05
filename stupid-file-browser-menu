@@ -6,7 +6,7 @@ import subprocess
 from PyQt4 import QtCore, QtGui, uic
 from sfbm.Config import Config
 from sfbm.Ui import PrefsDialog
-from sfbm.FileUtil import launch
+from sfbm.FileUtil import launch, guess_terminal
 from sfbm.ContextMenu import ContextMenu
 from sfbm.DirectoryMenu import RootEntry
 import sfbm.Global as G
@@ -28,6 +28,8 @@ class SFBM(QtGui.QApplication):
         G.model = QtGui.QStandardItemModel()
         G.icon_provider = QtGui.QFileIconProvider()
         G.settings = Config()
+        G.terminal = (G.settings.value("Settings/Terminal", None) or
+                      guess_terminal())
         G.prefs_dialog = PrefsDialog()
         G.item_context_menu = ContextMenu()
         G.systray = MainTray()
