@@ -119,6 +119,7 @@ class MainTray(QtGui.QSystemTrayIcon):
         if (not path) or icon.isNull():
             icon = G.icon_provider.icon(QtGui.QFileIconProvider.Drive)
         self.setIcon(icon)
+        G.App.setWindowIcon(icon)
 
     def add_app_action(self, text, func, theme_icon=None):
         action = QtGui.QAction(text, self)
