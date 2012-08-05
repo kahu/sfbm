@@ -50,6 +50,36 @@ def format_stripper(key):
     return None
 
 
+terminals = (("LXTerminal",
+              ["lxterminal", "--working-directory="], "lxde"),
+             ("Terminal (XFCE)",
+              ["xfce4-terminal", "--working-directory"], "xfce"),
+             ("Gnome Terminal",
+              ["gnome-terminal", "--working-directory"], "gnome"),
+             ("Konsole",
+              ["konsole", "--workdir"], "kde"))
+
+
+def list_terminals():
+    try:
+        for (name, cmdline, dummy) in reversed(terminals):
+            if which(cmdline[0]):
+                yield (name, cmdline)
+    finally:
+        yield ("Other:", ["", ""])
+
+
+def guess_terminal():
+    desktop = os.getenv("DESKTOP_SESSION", "")
+    shitterm = None
+    for (name, cmdline, de) in terminals:
+        if de in desktop:
+            return (name, cmdline)
+        elif which(cmdline[0]):
+            shitterm = (name, cmdline)
+    return shitterm
+
+
 ###http://bugs.python.org/issue444582
 def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     def _access_check(fn, mode):
@@ -143,4 +173,9 @@ def launch(fileinfo):
 def terminal_there(fi):
     fi.refresh()
     directory = fi.absoluteFilePath() if fi.isDir() else fi.absolutePath()
-    subprocess.Popen(["/usr/bin/konsole", "--workdir", directory])
+    dummy, (cmd, args) = G.terminal
+    if args.endswith("="):
+        cmdline = [cmd.strip(), args.lstrip() + directory]
+    else:
+        cmdline = [cmd.strip(), args.strip(), directory]
+    subprocess.Popen(cmdline)

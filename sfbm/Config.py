@@ -25,8 +25,6 @@ class Config(QtCore.QSettings):
 
     def write_settings(self):
         rows = G.model.rowCount()
-        self.beginGroup("Settings")
-        self.endGroup()
         self.beginGroup("Directories")
         self.beginWriteArray("root")
         self.remove("")
