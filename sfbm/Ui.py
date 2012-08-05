@@ -11,6 +11,17 @@ def get_data(path):
     return os.path.join(_ROOT, 'data', path)
 
 
+def icon_dialog(old_path):
+    old_dir = os.path.dirname(old_path) if old_path else os.getenv("HOME")
+    formats = QtGui.QImageReader.supportedImageFormats()
+    formats = map(lambda b: "*." + QtCore.QByteArray.data(b).decode(), formats)
+    formats = "Image Files (" + " ".join(formats) + ")"
+    fil = QtGui.QFileDialog.getOpenFileName(caption="Choose icon",
+                                            directory=old_dir,
+                                            filter=formats)
+    return fil
+
+
 class PrefsDialog(QtGui.QDialog):
     def __init__(self, parent=None):
         QtGui.QDialog.__init__(self, parent)
@@ -80,20 +91,20 @@ class PrefsDialog(QtGui.QDialog):
 
     @Slot()
     def on_trayiconButton_clicked(self):
-        fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
+        old_path = G.systray.icon_path
+        fil = icon_dialog(old_path)
         if fil:
-            icon = QtGui.QIcon(fil)
-            if icon:
-                G.systray.setIcon(icon)
-                G.settings.setValue("Settings/Icon", fil)
-                self.ui.trayiconButton.setIcon(G.systray.icon())
+            G.systray.icon_path = fil
+            G.settings.setValue("Settings/Icon", fil)
+            self.ui.trayiconButton.setIcon(G.systray.icon())
 
     @Slot()
     def on_iconButton_clicked(self):
-        fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
+        index = self.selection.currentIndex()
+        item = G.model.itemFromIndex(index)
+        old_path = item.data().icon_path
+        fil = icon_dialog(old_path)
         if fil:
-            index = self.selection.currentIndex()
-            item = G.model.itemFromIndex(index)
             item.data().icon_path = fil
             self.update()
 
