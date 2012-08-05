@@ -34,9 +34,13 @@ class SFBM(QtGui.QApplication):
         G.icon_provider = QtGui.QFileIconProvider()
         G.settings = Config()
         try:
-            name, cmdline = (G.settings.value("Settings/Terminal", None) or
-                             guess_terminal())
-            G.terminal = (name, cmdline)
+            setting = G.settings.value("Settings/Terminal", None)
+            if setting is None:
+                G.terminal = guess_terminal()
+                G.settings.setValue("Settings/Terminal", G.terminal)
+            else:
+                name, cmdline = setting
+                G.terminal = (name, cmdline)
         except:
             G.terminal = ("Other:", ["", ""])
             G.settings.setValue("Settings/Terminal", G.terminal)
@@ -83,7 +87,7 @@ class MainTray(QtGui.QSystemTrayIcon):
         QtGui.QSystemTrayIcon.__init__(self, parent)
 
         self.menu = QtGui.QMenu(parent)
-        self.tray_icon = G.settings.value("Settings/Icon")
+        self.icon_path = G.settings.value("Settings/Icon")
         self.app_actions = []
         self.menu.aboutToShow.connect(self.populate_menu)
         self.menu.triggered.connect(self.on_triggered)
@@ -105,17 +109,16 @@ class MainTray(QtGui.QSystemTrayIcon):
             self.menu.popup(QtGui.QCursor.pos())
 
     @property
-    def tray_icon(self):
-        return self._trayicon
+    def icon_path(self):
+        return self._icon_path
 
-    @tray_icon.setter
-    def tray_icon(self, icon_path):
-        self._trayicon = icon_path
-        if icon_path:
-            self._icon = QtGui.QIcon(icon_path)
-        else:
-            self._icon = G.icon_provider.icon(QtGui.QFileIconProvider.Drive)
-        self.setIcon(self._icon)
+    @icon_path.setter
+    def icon_path(self, path):
+        self._icon_path = path
+        icon = QtGui.QIcon(path)
+        if (not path) or icon.isNull():
+            icon = G.icon_provider.icon(QtGui.QFileIconProvider.Drive)
+        self.setIcon(icon)
 
     def add_app_action(self, text, func, theme_icon=None):
         action = QtGui.QAction(text, self)
