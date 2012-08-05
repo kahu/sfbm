@@ -30,7 +30,7 @@ class SFBM(QtGui.QApplication):
         G.settings = Config()
         G.prefs_dialog = PrefsDialog()
         G.item_context_menu = ContextMenu()
-        G.systray = MainTray(icon_path=None)
+        G.systray = MainTray()
         self.roots = {}
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, on=False)
         self.setStyleSheet("QMenu { menu-scrollable: 1; }")
@@ -67,11 +67,11 @@ class SFBM(QtGui.QApplication):
 
 
 class MainTray(QtGui.QSystemTrayIcon):
-    def __init__(self, icon_path=None, parent=None):
+    def __init__(self, parent=None):
         QtGui.QSystemTrayIcon.__init__(self, parent)
 
         self.menu = QtGui.QMenu(parent)
-        self.tray_icon = icon_path
+        self.tray_icon = G.settings.value("Settings/Icon")
         self.app_actions = []
         self.menu.aboutToShow.connect(self.populate_menu)
         self.menu.triggered.connect(self.on_triggered)

@@ -77,6 +77,16 @@ class PrefsDialog(QtGui.QDialog):
         G.App.remove_rootentry(index)
 
     @Slot()
+    def on_trayiconButton_clicked(self):
+        fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
+        if fil:
+            icon = QtGui.QIcon(fil)
+            if icon:
+                G.systray.setIcon(icon)
+                G.settings.setValue("Settings/Icon", fil)
+                self.ui.trayiconButton.setIcon(G.systray.icon())
+
+    @Slot()
     def on_iconButton_clicked(self):
         fil = QtGui.QFileDialog.getOpenFileName(self, caption="Choose icon")
         if fil:
@@ -95,6 +105,7 @@ class PrefsDialog(QtGui.QDialog):
 
     def activate(self):
         self.ui.listView.setCurrentIndex(G.model.index(0, 0))
+        self.ui.trayiconButton.setIcon(G.systray.icon())
         self.update()
         self.show()
 
