@@ -29,9 +29,13 @@ class SFBM(QtGui.QApplication):
         G.icon_provider = QtGui.QFileIconProvider()
         G.settings = Config()
         try:
-            name, cmdline = (G.settings.value("Settings/Terminal", None) or
-                             guess_terminal())
-            G.terminal = (name, cmdline)
+            setting = G.settings.value("Settings/Terminal", None)
+            if setting is None:
+                G.terminal = guess_terminal()
+                G.settings.setValue("Settings/Terminal", G.terminal)
+            else:
+                name, cmdline = setting
+                G.terminal = (name, cmdline)
         except:
             G.terminal = ("Other:", ["", ""])
             G.settings.setValue("Settings/Terminal", G.terminal)
