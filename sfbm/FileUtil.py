@@ -51,32 +51,32 @@ def format_stripper(key):
 
 
 terminals = (("LXTerminal",
-              "lxterminal", "--working-directory=", "lxde"),
+              ["lxterminal", "--working-directory="], "lxde"),
              ("Terminal (XFCE)",
-              "xfce4-terminal", "--working-directory ", "xfce"),
+              ["xfce4-terminal", "--working-directory"], "xfce"),
              ("Gnome Terminal",
-              "gnome-terminal", "--working-directory ", "gnome"),
+              ["gnome-terminal", "--working-directory"], "gnome"),
              ("Konsole",
-              "konsole", "--workdir ", "kde"))
+              ["konsole", "--workdir"], "kde"))
 
 
 def list_terminals():
     try:
-        for (name, cmd, args, dummy) in reversed(terminals):
-            if which(cmd):
-                yield (name, cmd, args)
+        for (name, cmdline, dummy) in reversed(terminals):
+            if which(cmdline[0]):
+                yield (name, cmdline)
     finally:
-        yield ("Other:", "", "")
+        yield ("Other:", ["", ""])
 
 
 def guess_terminal():
     desktop = os.getenv("DESKTOP_SESSION", "")
     shitterm = None
-    for (name, cmd, args, de) in terminals:
+    for (name, cmdline, de) in terminals:
         if de in desktop:
-            return (name, cmd, args)
-        elif which(cmd):
-            shitterm = (name, cmd, args)
+            return (name, cmdline)
+        elif which(cmdline[0]):
+            shitterm = (name, cmdline)
     return shitterm
 
 
@@ -173,9 +173,9 @@ def launch(fileinfo):
 def terminal_there(fi):
     fi.refresh()
     directory = fi.absoluteFilePath() if fi.isDir() else fi.absolutePath()
-    dummy, term, args = G.terminal
-    if args.endswith(" "):
-        cmd = [term, args.rstrip(), directory]
+    dummy, (cmd, args) = G.terminal
+    if args.endswith("="):
+        cmdline = [cmd.strip(), args.lstrip() + directory]
     else:
-        cmd = [term, args + directory]
-    subprocess.Popen(cmd)
+        cmdline = [cmd.strip(), args.strip(), directory]
+    subprocess.Popen(cmdline)

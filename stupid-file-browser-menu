@@ -28,8 +28,13 @@ class SFBM(QtGui.QApplication):
         G.model = QtGui.QStandardItemModel()
         G.icon_provider = QtGui.QFileIconProvider()
         G.settings = Config()
-        G.terminal = (G.settings.value("Settings/Terminal", None) or
-                      guess_terminal())
+        try:
+            name, cmdline = (G.settings.value("Settings/Terminal", None) or
+                             guess_terminal())
+            G.terminal = (name, cmdline)
+        except:
+            G.terminal = ("Other:", ["", ""])
+            G.settings.setValue("Settings/Terminal", G.terminal)
         G.prefs_dialog = PrefsDialog()
         G.item_context_menu = ContextMenu()
         G.systray = MainTray()

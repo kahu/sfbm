@@ -100,20 +100,24 @@ class PrefsDialog(QtGui.QDialog):
     @Slot(int)
     def on_terminalComboBox_activated(self, index):
         name = self.ui.terminalComboBox.itemText(index)
-        cmd, args = self.ui.terminalComboBox.itemData(index)
-        self.ui.terminalLineEdit.setText("{}{}".format(cmd, " " + args))
-        G.terminal = (name, cmd, args)
+        cmdline = self.ui.terminalComboBox.itemData(index)
+        self.ui.terminalLineEdit.setText("{}".format(" ".join(cmdline)))
+        G.terminal = (name, cmdline)
         G.settings.setValue("Settings/Terminal", G.terminal)
 
     @Slot(str)
     def on_terminalLineEdit_textEdited(self, text):
-        self.ui.terminalLineEdit.setText(text)
         index = self.ui.terminalComboBox.findText("Other:")
-        self.ui.terminalComboBox.setCurrentIndex(index)
+        if self.ui.terminalComboBox.currentIndex() != index:
+            cp = self.ui.terminalLineEdit.cursorPosition()
+            self.ui.terminalLineEdit.setText(text)
+            self.ui.terminalComboBox.setCurrentIndex(index)
+            self.ui.terminalLineEdit.setCursorPosition(cp)
         name = self.ui.terminalComboBox.itemText(index)
-        cmd, dummy, args = text.partition(" ")
-        self.ui.terminalComboBox.setItemData(index, (cmd, " " + args))
-        G.terminal = (name, cmd, args)
+        cmd, dummy, args = text.lstrip().partition(" ")
+        cmdline = [cmd, args]
+        self.ui.terminalComboBox.setItemData(index, cmdline)
+        G.terminal = (name, cmdline)
         G.settings.setValue("Settings/Terminal", G.terminal)
 
     def try_set_icon(self, wid, icon_name, text):
@@ -125,18 +129,19 @@ class PrefsDialog(QtGui.QDialog):
             box.setChecked(options[opt])
 
     def init_combobox(self):
-        for (name, cmd, args) in list_terminals():
-            self.ui.terminalComboBox.addItem(name, (cmd, args))
-        name, cmd, args = G.terminal
-        index = self.ui.terminalComboBox.findText(name)
-        if name == "Other:":
-            self.ui.terminalComboBox.setItemData(index, (cmd, args))
-        self.ui.terminalLineEdit.setText("{}{}".format(cmd, " " + args))
-        self.ui.terminalComboBox.setCurrentIndex(index)
+        for (name, cmdline) in list_terminals():
+            self.ui.terminalComboBox.addItem(name, cmdline)
 
     def activate(self):
         self.ui.listView.setCurrentIndex(G.model.index(0, 0))
         self.ui.trayiconButton.setIcon(G.systray.icon())
+
+        name, cmdline = G.terminal
+        index = self.ui.terminalComboBox.findText(name)
+        if name == "Other:":
+            self.ui.terminalComboBox.setItemData(index, cmdline)
+        self.ui.terminalLineEdit.setText("{}".format(" ".join(cmdline)))
+        self.ui.terminalComboBox.setCurrentIndex(index)
 
         self.update()
         self.show()
