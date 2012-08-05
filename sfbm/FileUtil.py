@@ -51,7 +51,7 @@ def format_stripper(key):
 
 
 terminals = (("LXTerminal",
-              "--working-directory=", "lxde"),
+              "lxterminal", "--working-directory=", "lxde"),
              ("Terminal (XFCE)",
               "xfce4-terminal", "--working-directory ", "xfce"),
              ("Gnome Terminal",
@@ -173,4 +173,9 @@ def launch(fileinfo):
 def terminal_there(fi):
     fi.refresh()
     directory = fi.absoluteFilePath() if fi.isDir() else fi.absolutePath()
-    subprocess.Popen(["/usr/bin/konsole", "--workdir", directory])
+    dummy, term, args = G.terminal
+    if args.endswith(" "):
+        cmd = [term, args.rstrip(), directory]
+    else:
+        cmd = [term, args + directory]
+    subprocess.Popen(cmd)
