@@ -114,8 +114,8 @@ def maybe_execute(fileinfo, execute=False):
 
     if execute:
         fileinfo.refresh()
+    filepath = fileinfo.absoluteFilePath()
     if fileinfo.isExecutable():
-        filepath = fileinfo.absoluteFilePath()
         mimetype = str(Mime.get_type(filepath))
         if mimetype in G.EXECUTABLES:
             if execute:
@@ -125,7 +125,8 @@ def maybe_execute(fileinfo, execute=False):
                 return _really_execute([filepath], cwd=path)
             else:
                 return True
-        if filepath.endswith(".desktop"):
+    if filepath.endswith(".desktop"):
+        if fileinfo.isExecutable() or fileinfo.ownerId() == 0:
             entry = DesktopEntry.DesktopEntry(filepath)
             tryex = entry.getTryExec()
             tryex = True if tryex == "" else which(tryex)
