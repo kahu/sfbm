@@ -5,3 +5,10 @@ build/
 dist/
 #debian/
 MANIFEST
+debian/files
+debian/sfbm.debhelper.log
+debian/sfbm.postinst.debhelper
+debian/sfbm.prerm.debhelper
+debian/sfbm.substvars
+debian/sfbm/
+

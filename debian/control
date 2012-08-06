@@ -12,7 +12,10 @@ Homepage: https://github.com/kahu/sfbm
 
 Package: sfbm
 Architecture: all
-Depends: ${python2:Depends}, ${misc:Depends}, python, python-qt4
+Depends: ${python2:Depends}, ${misc:Depends},
+ python (>= 2.7),
+ python-qt4,
+ python-xdg
 Suggests: kde-runtime
 Description: A simple file browser in the systray.
  Stupid File Browser Menu is a simple systray application for browsing
