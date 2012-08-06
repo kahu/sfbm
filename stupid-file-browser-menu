@@ -6,10 +6,11 @@ import subprocess
 from PyQt4 import QtCore, QtGui, uic
 from sfbm.Config import Config
 from sfbm.Ui import PrefsDialog
-from sfbm.FileStuff import RootEntry
+from sfbm.FileUtil import launch, guess_terminal
+from sfbm.ContextMenu import ContextMenu
+from sfbm.DirectoryMenu import RootEntry
 import sfbm.Global as G
-QtCore.Signal = QtCore.pyqtSignal
-QtCore.Slot = QtCore.pyqtSlot
+Slot = QtCore.pyqtSlot
 
 
 class SFBM(QtGui.QApplication):
@@ -27,9 +28,20 @@ class SFBM(QtGui.QApplication):
         G.model = QtGui.QStandardItemModel()
         G.icon_provider = QtGui.QFileIconProvider()
         G.settings = Config()
+        try:
+            setting = G.settings.value("Settings/Terminal", None)
+            if setting is None:
+                G.terminal = guess_terminal()
+                G.settings.setValue("Settings/Terminal", G.terminal)
+            else:
+                name, cmdline = setting
+                G.terminal = (name, cmdline)
+        except:
+            G.terminal = ("Other:", ["", ""])
+            G.settings.setValue("Settings/Terminal", G.terminal)
         G.prefs_dialog = PrefsDialog()
-        G.item_context_menu = ItemContextMenu()
-        G.systray = MainTray(icon_path=None)
+        G.item_context_menu = ContextMenu()
+        G.systray = MainTray()
         self.roots = {}
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, on=False)
         self.setStyleSheet("QMenu { menu-scrollable: 1; }")
@@ -42,23 +54,23 @@ class SFBM(QtGui.QApplication):
     def add_rootentry(self, path, icon=None, index=0, options=None):
         fi = QtCore.QFileInfo(path)
         if fi.exists() and fi.isDir():
-            if not fi.absoluteFilePath() in self.roots:
+            if not fi.absoluteFilePath() in self.roots.values():
                 root = RootEntry(fi, icon_path=icon,
                                  parent=G.systray, options=options)
                 G.model.insertRow(index, root.item)
-                self.roots[fi.absoluteFilePath()] = root
+                self.roots[root] = fi.absoluteFilePath()
                 return root
 
     def remove_rootentry(self, index):
-        root = G.model.item(index).data()
-        if self.roots and root:
-            self.roots.pop(root.data().absoluteFilePath())
+        root = G.model.item(index)
+        if len(self.roots) > 1 and root:
+            self.roots.pop(root.data())
             G.model.removeRow(index)
             return True
         else:
             return False
 
-    @QtCore.Slot()
+    @Slot()
     def on_death(self):
         G.settings.write_settings()
         G.systray.hide()
@@ -66,43 +78,43 @@ class SFBM(QtGui.QApplication):
 
 
 class MainTray(QtGui.QSystemTrayIcon):
-    def __init__(self, icon_path=None, parent=None):
+    def __init__(self, parent=None):
         QtGui.QSystemTrayIcon.__init__(self, parent)
 
         self.menu = QtGui.QMenu(parent)
-        self.tray_icon = icon_path
+        self.icon_path = G.settings.value("Settings/Icon")
         self.app_actions = []
         self.menu.aboutToShow.connect(self.populate_menu)
         self.menu.triggered.connect(self.on_triggered)
+        self.setContextMenu(self.menu)
         self.activated.connect(self.on_activated)
         self.add_app_action("Settings", G.prefs_dialog.activate,
                             "preferences-other")
         self.add_app_action("Quit", G.App.quit, "application-exit")
         self.show()
 
-    @QtCore.Slot(QtGui.QAction)
+    @Slot(QtGui.QAction)
     def on_triggered(self, action):
         if not action in self.app_actions:
-            action.launch()
+            launch(action.data())
 
-    @QtCore.Slot(QtGui.QSystemTrayIcon.ActivationReason)
+    @Slot(QtGui.QSystemTrayIcon.ActivationReason)
     def on_activated(self, reason):
-        if (reason == QtGui.QSystemTrayIcon.Trigger or
-            reason == QtGui.QSystemTrayIcon.Context):
+        if reason == QtGui.QSystemTrayIcon.Trigger:
             self.menu.popup(QtGui.QCursor.pos())
 
     @property
-    def tray_icon(self):
-        return self._trayicon
+    def icon_path(self):
+        return self._icon_path
 
-    @tray_icon.setter
-    def tray_icon(self, icon_path):
-        self._trayicon = icon_path
-        if icon_path:
-            self._icon = QtGui.QIcon(icon_path)
-        else:
-            self._icon = QtGui.QIcon.fromTheme("inode-directory")
-        self.setIcon(self._icon)
+    @icon_path.setter
+    def icon_path(self, path):
+        self._icon_path = path
+        icon = QtGui.QIcon(path)
+        if (not path) or icon.isNull():
+            icon = G.icon_provider.icon(QtGui.QFileIconProvider.Drive)
+        self.setIcon(icon)
+        G.App.setWindowIcon(icon)
 
     def add_app_action(self, text, func, theme_icon=None):
         action = QtGui.QAction(text, self)
@@ -118,33 +130,6 @@ class MainTray(QtGui.QSystemTrayIcon):
             self.menu.addAction(G.model.item(row).data())
         self.menu.addSeparator()
         self.menu.addActions(self.app_actions)
-
-
-class ItemContextMenu(QtGui.QMenu):
-    def __init__(self, parent=None):
-        QtGui.QMenu.__init__(self, parent)
-
-        self.title_action = QtGui.QAction("", self)
-        self.title_action.setEnabled(False)
-        self.title_action.setFont(G.bold_font)
-
-        self.size_action = QtGui.QAction("", self)
-        self.size_action.setEnabled(False)
-
-        self.addAction(self.title_action)
-        self.addAction(self.size_action)
-        self.addSeparator()
-
-        ### Open file
-        self.open_action = QtGui.QAction("Open", self)
-        self.open_action.triggered.connect(lambda: self.action.launch())
-        self.addAction(self.open_action)
-
-    def act(self, action, pos):
-        self.action = action
-        self.title_action.setText(self.action.text())
-        self.size_action.setText(self.action.readable_size())
-        self.popup(pos)
 
 
 def main():
