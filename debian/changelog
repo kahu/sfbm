@@ -1,3 +1,17 @@
+sfbm (0.6) precise; urgency=low
+
+  * Fix default systray icon.
+  * Fix removing directories.
+  * Fix adding duplicate directory.
+  * View/change file permissions from context menu.
+  * Fix opening files when using the keyboard.
+  * Include filename in dragged icon.
+  * Set context menu.
+  * Add "Open Terminal Here" to context menu.
+  * Allow changing systray icon.
+
+ -- Ka Hu <kahu2000@gmail.com>  Mon, 06 Aug 2012 00:08:01 +0200
+
 sfbm (0.5) precise; urgency=low
 
   * Initial release.
