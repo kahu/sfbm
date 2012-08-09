@@ -13,7 +13,17 @@ def actionAtPos(pos):
             return action
 
 
-class MenuEventFilter(QtCore.QObject):
+class StopPopulating(BaseException):
+    pass
+
+
+class DirectoryMenu(QtGui.QMenu):
+    def __init__(self, parent=None):
+        QtGui.QMenu.__init__(self, parent)
+
+        self.aboutToShow.connect(self.populate)
+        self.aboutToHide.connect(self.die)
+
     def eventFilter(self, obj, event):
         if obj is G.App:
             return False
@@ -23,14 +33,6 @@ class MenuEventFilter(QtCore.QObject):
             t == QtCore.QEvent.KeyPress):
             return False
         return True
-
-
-class DirectoryMenu(QtGui.QMenu):
-    def __init__(self, parent=None):
-        QtGui.QMenu.__init__(self, parent)
-
-        self.aboutToShow.connect(self.populate)
-        self.aboutToHide.connect(self.die)
 
     @Slot()
     def die(self):
@@ -44,22 +46,19 @@ class DirectoryMenu(QtGui.QMenu):
         directory.setSorting(G.active_root.sorting)
         directory.setFilter(G.active_root.filter)
         file_list = directory.entryInfoList()
+        G.populating = True
+        G.abort = False
         try:
-            G.populating = True
-            aborter = MenuEventFilter(self)
-            G.abort = False
-            G.App.installEventFilter(aborter)
+            G.App.installEventFilter(self)
             in_path = self.menuAction().data().absoluteFilePath() in os.get_exec_path()
             for i, item in enumerate(file_list):
-                G.App.processEvents()
-                if G.abort:
-                    self.die()
-                    return
                 file_list[i] = MenuEntry(item, parent=self, in_path=in_path)
             self.addActions(file_list)
+        except StopPopulating:
+            self.die()
+            return None
         finally:
-            G.App.removeEventFilter(aborter)
-            aborter.deleteLater()
+            G.App.removeEventFilter(self)
             G.populating = False
 
     def keyPressEvent(self, event):
@@ -143,6 +142,9 @@ class MenuEntry(QtGui.QAction):
     def __init__(self, fileinfo, parent=None, in_path=False):
         QtGui.QAction.__init__(self, parent)
 
+        G.App.processEvents()
+        if G.abort:
+            raise StopPopulating
         self.setData(fileinfo)
         self.setText(fileinfo.fileName().replace("&", "&&"))
         if fileinfo.isDir():
