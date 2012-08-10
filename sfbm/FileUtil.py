@@ -179,4 +179,7 @@ def terminal_there(fi):
         cmdline = [cmd.strip(), args.lstrip() + directory]
     else:
         cmdline = [cmd.strip(), args.strip(), directory]
-    subprocess.Popen(cmdline)
+    try:
+        subprocess.Popen(cmdline)
+    except OSError:
+        G.prefs_dialog.activate()
