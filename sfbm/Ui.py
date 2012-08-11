@@ -31,7 +31,8 @@ class PrefsDialog(QtGui.QDialog):
         self.ui.setupUi(self)
         self.checkboxes = {"ShowHidden": self.ui.showHiddenBox,
                            "IncludePrevious": self.ui.includePreviousBox,
-                           "DirsFirst": self.ui.dirsFirstBox}
+                           "DirsFirst": self.ui.dirsFirstBox,
+                           "Flatten": self.ui.flattenBox}
         themed_widgets = [[self.ui.addButton, "list-add", "Add"],
                           [self.ui.removeButton, "list-remove", "Remove"],
                           [self.ui.upButton, "go-up", "Move Up"],
@@ -44,6 +45,8 @@ class PrefsDialog(QtGui.QDialog):
                                                    self.toggle_checkbox("IncludePrevious", c))
         self.ui.showHiddenBox.clicked.connect(lambda c:
                                               self.toggle_checkbox("ShowHidden", c))
+        self.ui.flattenBox.clicked.connect(lambda c:
+                                           self.toggle_checkbox("Flatten", c))
         self.ui.upButton.clicked.connect(lambda: self.move_item(-1))
         self.ui.downButton.clicked.connect(lambda: self.move_item(1))
         self.ui.okButton.setIcon(QtGui.QIcon().fromTheme("dialog-ok"))

@@ -1,7 +1,9 @@
 import os
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from sfbm.FileUtil import launch, maybe_execute, readable_size, terminal_there
+from sfbm.GuiUtil import DraggyAction, DraggyMenu
 import sfbm.Global as G
+from xdg import Mime
 
 
 class PermissionsMenu(QtGui.QMenu):
@@ -48,23 +50,54 @@ class PermissionsMenu(QtGui.QMenu):
         self.addAction(perm_action)
 
 
-class ContextMenu(QtGui.QMenu):
+class MimeAction(QtGui.QAction, DraggyAction):
+    def __init__(self, action, parent=None):
+        QtGui.QAction.__init__(self, parent)
+
+        self.setMenu(MimeMenu(action))
+        self.mime = Mime.get_type(action.path())
+        self.setIcon(G.icon_provider.icon(action.data()))
+        self.setText(str(self.mime))
+
+    def urllist(self):
+        return self.menu().siblings
+
+    def drag_pixmap(self):
+        rec = self.menu().actionGeometry(self)
+        pix = QtGui.QPixmap.grabWidget(self.menu(), rec)
+        return pix
+
+
+class MimeMenu(QtGui.QMenu, DraggyMenu):
+    def __init__(self, action, parent=None):
+        QtGui.QMenu.__init__(self, parent)
+
+        self.action = action
+        self.path = action.path()
+        self.aboutToShow.connect(self.prepare)
+        self.aboutToHide.connect(self.clear)
+
+    def prepare(self):
+        self.clear()
+        sibs = self.action.parent().children()
+        self.siblings = []
+        for act in sibs:
+            if act.data():
+                if self.menuAction().mime == Mime.get_type(act.path()):
+                    self.addAction(act)
+                    self.siblings.append(QtCore.QUrl.fromLocalFile(act.path()))
+
+    def contextMenuEvent(self, event):
+        event.accept()
+
+
+class ContextMenu(QtGui.QMenu, DraggyMenu):
     def __init__(self, parent=None):
         QtGui.QMenu.__init__(self, parent)
 
         self.aboutToShow.connect(self.prepare)
 
-        self.title_action = QtGui.QAction("", self)
-        self.title_action.setEnabled(False)
-        self.title_action.setFont(G.bold_font)
-
-        self.size_action = QtGui.QAction("", self)
-        self.size_action.setEnabled(False)
-
-        self.addAction(self.title_action)
-        self.addAction(self.size_action)
-        self.addSeparator()
-
+    def prepare(self):
         ### Open file
         self.open_action = QtGui.QAction("Open", self)
         self.open_action.triggered.connect(lambda: launch(self.action.data()))
@@ -78,19 +111,32 @@ class ContextMenu(QtGui.QMenu):
         self.perm_menu = PermissionsMenu()
         self.perm_action.setMenu(self.perm_menu)
 
-    def prepare(self):
-        self.title_action.setText(self.action.text())
-        self.size_action.setText(readable_size(self.action.data()))
-        self.perm_menu.fileinfo = self.action.data()
+        self.title_action = QtGui.QAction("", self)
+        self.title_action.setEnabled(False)
+        self.title_action.setFont(G.bold_font)
 
+        self.size_action = QtGui.QAction("", self)
+        self.size_action.setEnabled(False)
+
+        self.addAction(self.title_action)
+        self.addAction(self.size_action)
+        self.addSeparator()
+
+        self.title_action.setText(self.action.text())
+        self.size_action.setText(readable_size(self.action))
+        self.perm_menu.fileinfo = self.action.data()
         if maybe_execute(self.action.data(), False):
             self.open_action.setText("Run")
         else:
             self.open_action.setText("Open")
+        if not self.action.data().isDir():
+            self.mime_action = MimeAction(self.action, parent=self)
+            self.addAction(self.mime_action)
         self.addAction(self.open_action)
         self.addAction(self.term_action)
         self.addAction(self.perm_action)
 
     def act(self, action, pos):
+        self.clear()
         self.action = action
         self.popup(pos)

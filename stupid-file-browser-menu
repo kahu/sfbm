@@ -3,12 +3,13 @@
 import sys
 import os
 import subprocess
-from PyQt4 import QtCore, QtGui, uic
+from PyQt4 import QtCore, QtGui
 from sfbm.Config import Config
 from sfbm.Ui import PrefsDialog
-from sfbm.FileUtil import launch, guess_terminal
+from sfbm.FileUtil import guess_terminal
 from sfbm.ContextMenu import ContextMenu
 from sfbm.DirectoryMenu import RootEntry
+from sfbm.GuiUtil import DraggyMenu
 import sfbm.Global as G
 Slot = QtCore.pyqtSlot
 
@@ -77,26 +78,58 @@ class SFBM(QtGui.QApplication):
         G.systray.deleteLater()
 
 
+class MainMenu(QtGui.QMenu, DraggyMenu):
+    def __init__(self, parent=None):
+        QtGui.QMenu.__init__(self, parent)
+
+        self.app_actions = []
+        self.aboutToShow.connect(self.populate_menu)
+        self.add_app_action("Settings", G.prefs_dialog.activate,
+                            "preferences-other")
+        self.add_app_action("Quit", G.App.quit, "application-exit")
+
+    def add_app_action(self, text, func, theme_icon=None):
+        action = QtGui.QAction(text, G.systray)
+        action.triggered.connect(func)
+        if theme_icon:
+            action.setIcon(QtGui.QIcon().fromTheme(theme_icon))
+        self.app_actions.append(action)
+
+    def populate_menu(self):
+        self.clear()
+        rows = G.model.rowCount()
+        try:
+            for row in range(rows):
+                root = G.model.item(row).data()
+                if root.options["Flatten"]:
+                    if row > 0:
+                        self.addSeparator()
+                    root.setFont(G.bold_font)
+                    root.setDisabled(True)
+                    self.addAction(root)
+                    root.menu().populate()
+                    for act in root.menu().get_contents():
+                        self.addAction(act)
+                    if row < rows:
+                        self.addSeparator()
+                else:
+                    root.setFont(G.App.font())
+                    root.setDisabled(False)
+                    self.addAction(root)
+        finally:
+            self.addSeparator()
+            self.addActions(self.app_actions)
+
+
 class MainTray(QtGui.QSystemTrayIcon):
     def __init__(self, parent=None):
         QtGui.QSystemTrayIcon.__init__(self, parent)
 
-        self.menu = QtGui.QMenu(parent)
         self.icon_path = G.settings.value("Settings/Icon")
-        self.app_actions = []
-        self.menu.aboutToShow.connect(self.populate_menu)
-        self.menu.triggered.connect(self.on_triggered)
+        self.menu = MainMenu(parent)
         self.setContextMenu(self.menu)
         self.activated.connect(self.on_activated)
-        self.add_app_action("Settings", G.prefs_dialog.activate,
-                            "preferences-other")
-        self.add_app_action("Quit", G.App.quit, "application-exit")
         self.show()
-
-    @Slot(QtGui.QAction)
-    def on_triggered(self, action):
-        if not action in self.app_actions:
-            launch(action.data())
 
     @Slot(QtGui.QSystemTrayIcon.ActivationReason)
     def on_activated(self, reason):
@@ -115,21 +148,6 @@ class MainTray(QtGui.QSystemTrayIcon):
             icon = G.icon_provider.icon(QtGui.QFileIconProvider.Drive)
         self.setIcon(icon)
         G.App.setWindowIcon(icon)
-
-    def add_app_action(self, text, func, theme_icon=None):
-        action = QtGui.QAction(text, self)
-        action.triggered.connect(func)
-        if theme_icon:
-            action.setIcon(QtGui.QIcon().fromTheme(theme_icon))
-        self.app_actions.append(action)
-
-    def populate_menu(self):
-        self.menu.clear()
-        rows = G.model.rowCount()
-        for row in range(rows):
-            self.menu.addAction(G.model.item(row).data())
-        self.menu.addSeparator()
-        self.menu.addActions(self.app_actions)
 
 
 def main():

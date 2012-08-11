@@ -2,27 +2,18 @@ import os
 from PyQt4 import QtCore, QtGui
 import sfbm.Global as G
 from sfbm.FileUtil import launch, maybe_execute
+from sfbm.GuiUtil import DraggyAction, DraggyMenu, actionAtPos, StopPopulating
 Slot = QtCore.pyqtSlot
 
 
-def actionAtPos(pos):
-    menu = G.App.widgetAt(pos)
-    if isinstance(menu, QtGui.QMenu):
-        action = menu.actionAt(menu.mapFromGlobal(pos))
-        if isinstance(action.data(), QtCore.QFileInfo):
-            return action
-
-
-class StopPopulating(BaseException):
-    pass
-
-
-class DirectoryMenu(QtGui.QMenu):
-    def __init__(self, parent=None):
+class DirectoryMenu(QtGui.QMenu, DraggyMenu):
+    def __init__(self, root=None, parent=None):
         QtGui.QMenu.__init__(self, parent)
 
         self.aboutToShow.connect(self.populate)
         self.aboutToHide.connect(self.die)
+        self.triggered.connect(self.on_triggered)
+        self.root = root
 
     def eventFilter(self, obj, event):
         if obj is G.App:
@@ -34,25 +25,36 @@ class DirectoryMenu(QtGui.QMenu):
             return False
         return True
 
+    @Slot(QtGui.QAction)
+    def on_triggered(self, action):
+        if isinstance(action, DraggyAction):
+            launch(action.data())
+
     @Slot()
     def die(self):
         for c in self.children():
             c.deleteLater()
 
+    def get_contents(self):
+        for act in self.children():
+            if isinstance(act, DraggyAction):
+                yield act
+
     @Slot()
     def populate(self):
         self.clear()
-        directory = QtCore.QDir(self.menuAction().data().absoluteFilePath())
-        directory.setSorting(G.active_root.sorting)
-        directory.setFilter(G.active_root.filter)
-        file_list = directory.entryInfoList()
         G.populating = True
         G.abort = False
+        directory = QtCore.QDir(self.menuAction().path())
+        directory.setSorting(self.root.sorting)
+        directory.setFilter(self.root.filter)
+        file_list = directory.entryInfoList()
+        in_path = self.menuAction().path() in os.get_exec_path()
         try:
             G.App.installEventFilter(self)
-            in_path = self.menuAction().data().absoluteFilePath() in os.get_exec_path()
             for i, item in enumerate(file_list):
-                file_list[i] = MenuEntry(item, parent=self, in_path=in_path)
+                file_list[i] = MenuEntry(item, root=self.root,
+                                         parent=self, in_path=in_path)
             self.addActions(file_list)
         except StopPopulating:
             self.die()
@@ -71,21 +73,6 @@ class DirectoryMenu(QtGui.QMenu):
             return
         QtGui.QMenu.keyPressEvent(self, event)
 
-    def contextMenuEvent(self, event):
-        pos = event.globalPos()
-        action = actionAtPos(pos)
-        if action:
-            G.item_context_menu.act(action, pos)
-            event.accept()
-
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            pos = event.globalPos()
-            G.drag_start_position = pos
-            G.drag_start_action = actionAtPos(pos)
-            event.accept()
-        QtGui.QMenu.mousePressEvent(self, event)
-
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             action = actionAtPos(event.globalPos())
@@ -98,62 +85,30 @@ class DirectoryMenu(QtGui.QMenu):
         else:
             QtGui.QMenu.mouseDoubleClickEvent(self, event)
 
-    def mouseReleaseEvent(self, event):
-        if event.button() == QtCore.Qt.RightButton:
-            return
-        if event.button() == QtCore.Qt.MiddleButton:
-            action = actionAtPos(event.globalPos())
-            if action:
-                if action.menu():
-                    launch(action.data())
-                else:
-                    launch(self.menuAction().data())
-            event.accept()
-        else:
-            QtGui.QMenu.mouseReleaseEvent(self, event)
 
-    def mouseMoveEvent(self, event):
-        if (event.buttons() != QtCore.Qt.LeftButton or not G.drag_start_position):
-            QtGui.QMenu.mouseMoveEvent(self, event)
-            return
-        distance = (event.globalPos() - G.drag_start_position).manhattanLength()
-        if distance < G.App.startDragDistance():
-            QtGui.QMenu.mouseMoveEvent(self, event)
-            return
-        dragged = G.drag_start_action
-        if dragged is None:
-            QtGui.QMenu.mouseMoveEvent(self, event)
-            return
-        url = QtCore.QUrl.fromLocalFile(dragged.data().absoluteFilePath())
-        mimeData = QtCore.QMimeData()
-        mimeData.setUrls([url])
-
-        drag = QtGui.QDrag(self)
-        drag.setPixmap(dragged.drag_pixmap())
-        drag.setMimeData(mimeData)
-        drag.start(QtCore.Qt.MoveAction |
-                   QtCore.Qt.CopyAction |
-                   QtCore.Qt.LinkAction)
-        G.drag_start_action = None
-        G.drag_start_position = None
-
-
-class MenuEntry(QtGui.QAction):
-    def __init__(self, fileinfo, parent=None, in_path=False):
+class MenuEntry(QtGui.QAction, DraggyAction):
+    def __init__(self, fileinfo, root=None, parent=None, in_path=False):
         QtGui.QAction.__init__(self, parent)
 
+        self.root = root
         G.App.processEvents()
         if G.abort:
             raise StopPopulating
         self.setData(fileinfo)
         self.setText(fileinfo.fileName().replace("&", "&&"))
         if fileinfo.isDir():
-            self.setMenu(DirectoryMenu())
+            self.setMenu(DirectoryMenu(root))
         elif (fileinfo.isExecutable and not in_path and
               maybe_execute(fileinfo, execute=False)):
                 self.setFont(G.bold_font)
         icon = G.icon_provider.icon(fileinfo)
         self.setIcon(icon)
+
+    def path(self):
+        return self.data().absoluteFilePath()
+
+    def urllist(self):
+        return [QtCore.QUrl.fromLocalFile(self.path())]
 
     def drag_pixmap(self):
         widget = QtGui.QWidget()
@@ -170,18 +125,16 @@ class MenuEntry(QtGui.QAction):
 
 class RootEntry(MenuEntry):
     def __init__(self, fileinfo, icon_path=None, parent=None, options=None):
-        MenuEntry.__init__(self, fileinfo, parent=parent)
+        MenuEntry.__init__(self, fileinfo, root=self, parent=parent)
 
         self.item = QtGui.QStandardItem()
         self.item.setData(self)
         self.item.setText(self.data().absoluteFilePath())
         self.icon_path = icon_path
-        self.options = options if options else G.default_options.copy()
-        self.hovered.connect(self.set_active)
-
-    @Slot()
-    def set_active(self):
-        G.active_root = self
+        self.options = options if options else {}
+        for opt, val in G.default_options.items():
+            if not self.options.get(opt, None):
+                self.options[opt] = val
 
     @property
     def icon_path(self):

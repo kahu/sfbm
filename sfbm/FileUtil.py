@@ -1,8 +1,7 @@
 import subprocess
 import os
 from PyQt4 import QtCore, QtGui
-import xdg.Mime as Mime
-import xdg.DesktopEntry as DesktopEntry
+from xdg import Mime, DesktopEntry
 import sfbm.Global as G
 
 
@@ -140,7 +139,8 @@ def maybe_execute(fileinfo, execute=False):
     return False
 
 
-def readable_size(fileinfo):
+def readable_size(action):
+    fileinfo = action.data()
     fileinfo.refresh()
     if fileinfo.isFile():
         bs = fileinfo.size()
@@ -151,8 +151,8 @@ def readable_size(fileinfo):
         return '{:4n} PB'.format(round(bs, 2))
     elif fileinfo.isDir():
         directory = QtCore.QDir(fileinfo.absoluteFilePath())
-        directory.setSorting(G.active_root.sorting)
-        directory.setFilter(G.active_root.filter)
+        directory.setSorting(action.root.sorting)
+        directory.setFilter(action.root.filter)
         size = directory.count()
         return "{0} items".format(size)
     else:
