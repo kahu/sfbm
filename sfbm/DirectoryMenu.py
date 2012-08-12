@@ -27,7 +27,7 @@ class DirectoryMenu(QtGui.QMenu, DraggyMenu):
 
     @Slot(QtGui.QAction)
     def on_triggered(self, action):
-        if isinstance(action, DraggyAction):
+        if isinstance(self.menuAction(), DraggyAction):
             launch(action.data())
 
     @Slot()
