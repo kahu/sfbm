@@ -97,6 +97,8 @@ class MainMenu(QtGui.QMenu, DraggyMenu):
 
     def populate_menu(self):
         self.clear()
+        G.drag_start_action = None
+        G.drag_start_position = None
         rows = G.model.rowCount()
         try:
             for row in range(rows):
