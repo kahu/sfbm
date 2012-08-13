@@ -1,6 +1,7 @@
 import os
 from PyQt4 import QtGui, QtCore
-from sfbm.FileUtil import launch, maybe_execute, readable_size, terminal_there
+from sfbm.FileUtil import launch, maybe_execute, entry_visuals
+from sfbm.FileUtil import readable_size, terminal_there, opens_with
 from sfbm.GuiUtil import DraggyAction, DraggyMenu
 import sfbm.Global as G
 from xdg import Mime
@@ -48,6 +49,27 @@ class PermissionsMenu(QtGui.QMenu):
             act.setDisabled(True)
             self.addAction(act)
         self.addAction(perm_action)
+
+
+class OpenMenu(QtGui.QMenu):
+    def __init__(self, action, parent=None):
+        QtGui.QMenu.__init__(self, parent)
+
+        self.aboutToShow.connect(self.populate)
+#        self.aboutToHide.connect(self.clear)
+        self.setTitle("Open With...")
+        self.action = action
+
+    def populate(self):
+        self.clear()
+        for path in opens_with(self.action):
+            dfile = QtCore.QFileInfo(path)
+            name, icon = entry_visuals(path)
+            act = QtGui.QAction(name, self)
+            if icon:
+                act.setIcon(icon)
+            act.triggered.connect(lambda x, d=dfile, act=self.action: launch(d, urllist=self.action.urllist()))
+            self.addAction(act)
 
 
 class MimeAction(QtGui.QAction, DraggyAction):
@@ -133,6 +155,9 @@ class ContextMenu(QtGui.QMenu, DraggyMenu):
             self.mime_action = MimeAction(self.action, parent=self)
             self.addAction(self.mime_action)
         self.addAction(self.open_action)
+        self.opact = QtGui.QAction("Open With...", self)
+        self.opact.setMenu(OpenMenu(self.action))
+        self.addAction(self.opact)
         self.addAction(self.term_action)
         self.addAction(self.perm_action)
 

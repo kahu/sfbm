@@ -1,7 +1,7 @@
 import subprocess
 import os
 from PyQt4 import QtCore, QtGui
-from xdg import Mime, DesktopEntry
+from xdg import Mime, DesktopEntry, IconTheme
 import sfbm.Global as G
 
 
@@ -41,12 +41,42 @@ def unescape_slashes(key):
         return None
 
 
-def format_stripper(key):
+def format_expander(key, urllist=None):
     if key == "%%":
         return "%"
     if key.startswith("%"):
+        if key == "%f":
+            if urllist:
+                return "'" + urllist[0].path() + "'" if urllist else ""
+        if key == "%F":
+            if urllist:
+                return " ".join(["'" + u.path() + "'"
+                                 for u in urllist]) if urllist else ""
+        if key == "%u":
+            if urllist:
+                return "'" + urllist[0].toString() + "'" if urllist else ""
+        if key == "%U":
+            if urllist:
+                return " ".join(["'" + u.toString() + "'"
+                                 for u in urllist]) if urllist else ""
         return ""
     return None
+
+
+def parse_exec_line(entry, urllist=None):
+    xec = unescaper(entry.getExec(), unescape_slashes)
+    xec = unescaper(xec, lambda k: format_expander(k, urllist=urllist))
+    return xec
+
+
+def entry_visuals(path):
+    entry = DesktopEntry.DesktopEntry(path)
+    name = entry.getName()
+    icon = IconTheme.getIconPath(entry.getIcon(), theme=G.icon_theme)
+    icon = QtGui.QIcon(icon) if icon else None
+    if (not icon) or icon.isNull():
+        icon = None
+    return name, icon
 
 
 terminals = (("LXTerminal",
@@ -103,7 +133,22 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     return None
 
 
-def maybe_execute(fileinfo, execute=False):
+def opens_with(action):
+    mimetype = Mime.get_type(action.path())
+
+    def _kde():
+        mime = str(mimetype)
+        proc = subprocess.Popen(["ktraderclient", "--mimetype", mime],
+                                stdout=subprocess.PIPE)
+        res = proc.communicate()[0]
+        res = res.decode()
+        res = filter(lambda s: s.startswith("DesktopEntryPath"), res.splitlines())
+        res = map(lambda s: s.split(':')[1].split("'")[1], res)
+        return res
+    return _kde()
+
+
+def maybe_execute(fileinfo, execute=False, urllist=None):
     def _really_execute(cmd, shell=False, cwd=None):
         try:
             subprocess.Popen(cmd, shell=shell, cwd=cwd, env=os.environ)
@@ -132,8 +177,7 @@ def maybe_execute(fileinfo, execute=False):
             if not execute:
                 return tryex
             elif tryex:
-                xec = unescaper(entry.getExec(), unescape_slashes)
-                xec = unescaper(xec, format_stripper)
+                xec = parse_exec_line(entry, urllist=urllist)
                 path = entry.getPath() or os.getenv("HOME")
                 return _really_execute(xec, shell=True, cwd=path)
     return False
@@ -159,14 +203,14 @@ def readable_size(action):
         return ""
 
 
-def launch(fileinfo):
+def launch(fileinfo, urllist=None):
     fileinfo.refresh()
     filename = fileinfo.absoluteFilePath()
     if fileinfo.isDir():
         url = QtCore.QUrl.fromUserInput(filename)
         QtGui.QDesktopServices.openUrl(url)
         return
-    elif not maybe_execute(fileinfo, execute=True):
+    elif not maybe_execute(fileinfo, execute=True, urllist=urllist):
         url = QtCore.QUrl.fromUserInput(filename)
         QtGui.QDesktopServices.openUrl(url)
 

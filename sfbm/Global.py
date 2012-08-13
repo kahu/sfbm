@@ -14,6 +14,7 @@ icon_provider = None
 abort = False
 populating = False
 terminal = None
+icon_theme = "oxygen"
 
 EXECUTABLES = {"application/x-executable",
                "application/executable",
