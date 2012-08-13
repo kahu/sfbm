@@ -43,7 +43,9 @@ class PermissionsMenu(QtGui.QMenu):
             v_lay.addWidget(row)
         if self.fileinfo.ownerId() != os.getuid():
             perm_widget.setDisabled(True)
-        for own, f in zip(["User: ", "Group: "], [self.fileinfo.owner(), self.fileinfo.group()]):
+        for own, f in zip(["User: ", "Group: "],
+                          [self.fileinfo.owner(),
+                           self.fileinfo.group()]):
             act = QtGui.QAction(self)
             act.setText(own + f)
             act.setDisabled(True)
@@ -52,24 +54,29 @@ class PermissionsMenu(QtGui.QMenu):
 
 
 class OpenMenu(QtGui.QMenu):
-    def __init__(self, action, parent=None):
+    def __init__(self, actions, parent=None):
         QtGui.QMenu.__init__(self, parent)
 
         self.aboutToShow.connect(self.populate)
-#        self.aboutToHide.connect(self.clear)
-        self.setTitle("Open With...")
-        self.action = action
+        self.actions = actions
 
     def populate(self):
         self.clear()
-        for path in opens_with(self.action):
-            dfile = QtCore.QFileInfo(path)
+        for path in opens_with(Mime.get_type(self.actions[0].path())):
             name, icon = entry_visuals(path)
             act = QtGui.QAction(name, self)
             if icon:
                 act.setIcon(icon)
-            act.triggered.connect(lambda x, d=dfile, act=self.action: launch(d, urllist=self.action.urllist()))
+            act.triggered.connect(lambda dummy,
+                                         path=path,
+                                         acts=self.actions:
+                                         self.open_it(path, self.actions))
             self.addAction(act)
+
+    def open_it(self, path, acts):
+        xec = QtCore.QFileInfo(path)
+        urllist = [act.urllist()[0] for act in acts]
+        launch(xec, urllist=urllist)
 
 
 class MimeAction(QtGui.QAction, DraggyAction):
@@ -82,7 +89,7 @@ class MimeAction(QtGui.QAction, DraggyAction):
         self.setText(str(self.mime))
 
     def urllist(self):
-        return self.menu().siblings
+        return [act.urllist()[0] for act in self.menu().actions]
 
     def drag_pixmap(self):
         rec = self.menu().actionGeometry(self)
@@ -102,12 +109,15 @@ class MimeMenu(QtGui.QMenu, DraggyMenu):
     def prepare(self):
         self.clear()
         sibs = self.action.parent().children()
-        self.siblings = []
+        self.actions = []
         for act in sibs:
             if act.data():
                 if self.menuAction().mime == Mime.get_type(act.path()):
-                    self.addAction(act)
-                    self.siblings.append(QtCore.QUrl.fromLocalFile(act.path()))
+                    self.actions.append(act)
+        self.open_action = QtGui.QAction("Open With", self)
+        self.open_action.setMenu(OpenMenu(self.actions))
+        self.addAction(self.open_action)
+        self.addActions(self.actions)
 
     def contextMenuEvent(self, event):
         event.accept()
@@ -155,8 +165,8 @@ class ContextMenu(QtGui.QMenu, DraggyMenu):
             self.mime_action = MimeAction(self.action, parent=self)
             self.addAction(self.mime_action)
         self.addAction(self.open_action)
-        self.opact = QtGui.QAction("Open With...", self)
-        self.opact.setMenu(OpenMenu(self.action))
+        self.opact = QtGui.QAction("Open With", self)
+        self.opact.setMenu(OpenMenu([self.action]))
         self.addAction(self.opact)
         self.addAction(self.term_action)
         self.addAction(self.perm_action)

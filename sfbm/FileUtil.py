@@ -133,9 +133,7 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     return None
 
 
-def opens_with(action):
-    mimetype = Mime.get_type(action.path())
-
+def opens_with(mimetype):
     def _kde():
         mime = str(mimetype)
         proc = subprocess.Popen(["ktraderclient", "--mimetype", mime],
