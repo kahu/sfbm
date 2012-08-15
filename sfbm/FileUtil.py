@@ -46,19 +46,15 @@ def format_expander(key, urllist=None):
         return "%"
     if key.startswith("%"):
         if key == "%f":
-            if urllist:
-                return "'" + urllist[0].path() + "'" if urllist else ""
+            return "'" + urllist[0].path() + "'" if urllist else ""
         if key == "%F":
-            if urllist:
-                return " ".join(["'" + u.path() + "'"
-                                 for u in urllist]) if urllist else ""
+            return " ".join(["'" + u.path() + "'"
+                             for u in urllist]) if urllist else ""
         if key == "%u":
-            if urllist:
-                return "'" + urllist[0].toString() + "'" if urllist else ""
+            return "'" + urllist[0].toString() + "'" if urllist else ""
         if key == "%U":
-            if urllist:
-                return " ".join(["'" + u.toString() + "'"
-                                 for u in urllist]) if urllist else ""
+            return " ".join(["'" + u.toString() + "'"
+                             for u in urllist]) if urllist else ""
         return ""
     return None
 
@@ -69,8 +65,7 @@ def parse_exec_line(entry, urllist=None):
     return xec
 
 
-def entry_visuals(path):
-    entry = DesktopEntry.DesktopEntry(path)
+def entry_visuals(entry):
     name = entry.getName()
     icon = IconTheme.getIconPath(entry.getIcon(), theme=G.icon_theme)
     icon = QtGui.QIcon(icon) if icon else None
@@ -173,7 +168,7 @@ def maybe_execute(fileinfo, execute=False, urllist=None):
             tryex = entry.getTryExec()
             tryex = True if tryex == "" else which(tryex)
             if not execute:
-                return tryex
+                return entry
             elif tryex:
                 xec = parse_exec_line(entry, urllist=urllist)
                 path = entry.getPath() or os.getenv("HOME")

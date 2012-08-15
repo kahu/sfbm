@@ -1,8 +1,9 @@
 import os
 from PyQt4 import QtCore, QtGui
 import sfbm.Global as G
-from sfbm.FileUtil import launch, maybe_execute
+from sfbm.FileUtil import launch, maybe_execute, entry_visuals
 from sfbm.GuiUtil import DraggyAction, DraggyMenu, actionAtPos, StopPopulating
+from xdg import DesktopEntry
 Slot = QtCore.pyqtSlot
 
 
@@ -86,6 +87,23 @@ class DirectoryMenu(QtGui.QMenu, DraggyMenu):
             QtGui.QMenu.mouseDoubleClickEvent(self, event)
 
 
+def decorate_action(action, root=None, in_path=False):
+    fi = action.data()
+    name = fi.fileName()
+    if fi.isDir():
+        action.setMenu(DirectoryMenu(root))
+        return name, G.icon_provider.icon(fi)
+    xec = maybe_execute(fi)
+    if isinstance(xec, DesktopEntry.DesktopEntry):
+        action.setFont(G.bold_font)
+        name, icon = entry_visuals(xec)
+        action.setFont(G.bold_font)
+        return name, icon
+    if not in_path and xec is True:
+        action.setFont(G.bold_font)
+    return name, G.icon_provider.icon(fi)
+
+
 class MenuEntry(QtGui.QAction, DraggyAction):
     def __init__(self, fileinfo, root=None, parent=None, in_path=False):
         QtGui.QAction.__init__(self, parent)
@@ -95,13 +113,9 @@ class MenuEntry(QtGui.QAction, DraggyAction):
         if G.abort:
             raise StopPopulating
         self.setData(fileinfo)
-        self.setText(fileinfo.fileName().replace("&", "&&"))
-        if fileinfo.isDir():
-            self.setMenu(DirectoryMenu(root))
-        elif (fileinfo.isExecutable and not in_path and
-              maybe_execute(fileinfo, execute=False)):
-                self.setFont(G.bold_font)
-        icon = G.icon_provider.icon(fileinfo)
+        name, icon = decorate_action(self, root=root, in_path=in_path)
+        icon = icon or G.icon_provider.icon(self.data())
+        self.setText(name.replace("&", "&&"))
         self.setIcon(icon)
 
     def path(self):

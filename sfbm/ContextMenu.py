@@ -4,7 +4,7 @@ from sfbm.FileUtil import launch, maybe_execute, entry_visuals
 from sfbm.FileUtil import readable_size, terminal_there, opens_with
 from sfbm.GuiUtil import DraggyAction, DraggyMenu
 import sfbm.Global as G
-from xdg import Mime
+from xdg import Mime, DesktopEntry
 
 
 class PermissionsMenu(QtGui.QMenu):
@@ -63,7 +63,7 @@ class OpenMenu(QtGui.QMenu):
     def populate(self):
         self.clear()
         for path in opens_with(Mime.get_type(self.actions[0].path())):
-            name, icon = entry_visuals(path)
+            name, icon = entry_visuals(DesktopEntry.DesktopEntry(path))
             act = QtGui.QAction(name, self)
             if icon:
                 act.setIcon(icon)
