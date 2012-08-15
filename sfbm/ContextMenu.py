@@ -1,10 +1,10 @@
 import os
 from PyQt4 import QtGui, QtCore
-from sfbm.FileUtil import launch, maybe_execute, entry_visuals
+from sfbm.FileUtil import launch, maybe_execute, entry_visuals, get_mime_type
 from sfbm.FileUtil import readable_size, terminal_there, opens_with
 from sfbm.GuiUtil import DraggyAction, DraggyMenu
 import sfbm.Global as G
-from xdg import Mime, DesktopEntry
+from xdg import DesktopEntry
 
 
 class PermissionsMenu(QtGui.QMenu):
@@ -62,7 +62,7 @@ class OpenMenu(QtGui.QMenu):
 
     def populate(self):
         self.clear()
-        for path in opens_with(Mime.get_type(self.actions[0].path())):
+        for path in opens_with(get_mime_type(self.actions[0].path())):
             name, icon = entry_visuals(DesktopEntry.DesktopEntry(path))
             act = QtGui.QAction(name, self)
             if icon:
@@ -84,7 +84,7 @@ class MimeAction(QtGui.QAction, DraggyAction):
         QtGui.QAction.__init__(self, parent)
 
         self.setMenu(MimeMenu(action))
-        self.mime = Mime.get_type(action.path())
+        self.mime = get_mime_type(action.path())
         self.setIcon(G.icon_provider.icon(action.data()))
         self.setText(str(self.mime))
 
@@ -112,7 +112,7 @@ class MimeMenu(QtGui.QMenu, DraggyMenu):
         self.actions = []
         for act in sibs:
             if act.data():
-                if self.menuAction().mime == Mime.get_type(act.path()):
+                if self.menuAction().mime == get_mime_type(act.path()):
                     self.actions.append(act)
         self.open_action = QtGui.QAction("Open With", self)
         self.open_action.setMenu(OpenMenu(self.actions))

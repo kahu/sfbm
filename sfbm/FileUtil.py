@@ -141,6 +141,16 @@ def opens_with(mimetype):
     return _kde()
 
 
+def get_mime_type(path):
+    try:
+        p = subprocess.Popen([which("file"), "--mime-type", "-b", path],
+                             stdout=subprocess.PIPE)
+        mimetype = p.communicate()[0].decode().strip()
+    except:
+        mimetype = str(Mime.get_type(path))
+    return mimetype
+
+
 def maybe_execute(fileinfo, execute=False, urllist=None):
     def _really_execute(cmd, shell=False, cwd=None):
         try:
@@ -153,7 +163,7 @@ def maybe_execute(fileinfo, execute=False, urllist=None):
         fileinfo.refresh()
     filepath = fileinfo.absoluteFilePath()
     if fileinfo.isExecutable():
-        mimetype = str(Mime.get_type(filepath))
+        mimetype = get_mime_type(filepath)
         if mimetype in G.EXECUTABLES:
             if execute:
                 path = fileinfo.absolutePath()
