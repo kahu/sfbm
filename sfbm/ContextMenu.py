@@ -154,7 +154,7 @@ class ContextMenu(QtGui.QMenu, DraggyMenu):
         self.addAction(self.size_action)
         self.addSeparator()
 
-        self.title_action.setText(self.action.text())
+        self.title_action.setText(self.action.data().fileName())
         self.size_action.setText(readable_size(self.action))
         self.perm_menu.fileinfo = self.action.data()
         if maybe_execute(self.action.data(), False):
