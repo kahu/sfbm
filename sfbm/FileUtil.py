@@ -3,7 +3,7 @@ import os
 import itertools
 from collections import OrderedDict
 from PyQt4 import QtCore, QtGui
-from xdg import Mime, DesktopEntry, IconTheme, BaseDirectory
+from xdg import Mime, DesktopEntry, IconTheme, BaseDirectory, IniFile
 import sfbm.Global as G
 
 
@@ -96,10 +96,9 @@ def list_terminals():
 
 
 def guess_terminal():
-    desktop = os.getenv("DESKTOP_SESSION", "")
     shitterm = None
     for (name, cmdline, de) in terminals:
-        if de in desktop:
+        if de == G.desktop:
             return (name, cmdline)
         elif which(cmdline[0]):
             shitterm = (name, cmdline)
@@ -128,6 +127,26 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
                 if _access_check(name, mode):
                     return name
     return None
+
+
+def list_icon_themes():
+    themes = OrderedDict()
+    dirs = BaseDirectory.load_data_paths("icons")
+    seen = set()
+    for d in dirs:
+        if d in seen:
+            continue
+        seen.add(d)
+        thlist = os.listdir(d)
+        for th in thlist:
+            idx = os.path.join(d, th, "index.theme")
+            if os.path.exists(idx):
+                ini = IniFile.IniFile(idx)
+                if (ini.hasGroup("Icon Theme")
+                    and ini.hasKey("Directories", "Icon Theme")
+                    and not ini.get("Hidden", group="Icon Theme") == "true"):
+                    themes[th] = ini
+    return themes.values()
 
 
 ### Ugly piece of shit from xdg-mime. Fuck the linux desktop.
