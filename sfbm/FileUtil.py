@@ -1,7 +1,9 @@
 import subprocess
 import os
+import itertools
+from collections import OrderedDict
 from PyQt4 import QtCore, QtGui
-from xdg import Mime, DesktopEntry, IconTheme
+from xdg import Mime, DesktopEntry, IconTheme, BaseDirectory
 import sfbm.Global as G
 
 
@@ -130,25 +132,35 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
 
 def opens_with(mimetype):
     def _kde():
-        mime = str(mimetype)
-        proc = subprocess.Popen(["ktraderclient", "--mimetype", mime],
+        proc = subprocess.Popen(["ktraderclient", "--mimetype", mimetype],
                                 stdout=subprocess.PIPE)
-        res = proc.communicate()[0]
-        res = res.decode()
-        res = filter(lambda s: s.startswith("DesktopEntryPath"), res.splitlines())
-        res = map(lambda s: s.split(':')[1].split("'")[1], res)
-        return res
-    return _kde()
+        res = proc.communicate()[0].decode().splitlines()
+        entries = filter(lambda s: s.startswith("DesktopEntryPath"), res)
+        entries = map(lambda s: s.split(':')[1].split("'")[1], entries)
+        entries = map(DesktopEntry.DesktopEntry, entries)
+        return entries
+
+    def _generic():
+        entries = OrderedDict()
+        for mapps in itertools.chain(BaseDirectory.load_data_paths("applications/mimeapps.list"),
+                                     BaseDirectory.load_data_paths("applications/defaults.list")):
+            with open(mapps) as mf:
+                for l in mf:
+                    if l.startswith(mimetype):
+                        filenames = l.split("=")[1].strip().split(";")
+                        for dfile in filenames:
+                            if dfile:
+                                dpath = BaseDirectory.load_data_paths("applications", dfile)
+                                dpath = list(dpath)
+                                if dpath:
+                                    entry = DesktopEntry.DesktopEntry(dpath[0])
+                                    entries[dfile] = entry
+        return entries.values()
+    return _generic()
 
 
 def get_mime_type(path):
-    try:
-        p = subprocess.Popen([which("file"), "--mime-type", "-b", path],
-                             stdout=subprocess.PIPE)
-        mimetype = p.communicate()[0].decode().strip()
-    except:
-        mimetype = str(Mime.get_type(path))
-    return mimetype
+    return str(Mime.get_type(path))
 
 
 def maybe_execute(fileinfo, execute=False, urllist=None):
