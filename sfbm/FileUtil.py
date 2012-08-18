@@ -146,7 +146,7 @@ def list_icon_themes():
                     and ini.hasKey("Directories", "Icon Theme")
                     and not ini.get("Hidden", group="Icon Theme") == "true"):
                     themes[th] = ini
-    return themes.keys()
+    return sorted(themes.keys())
 
 
 def guess_icon_theme():
@@ -155,6 +155,25 @@ def guess_icon_theme():
     guess = guesses.get(G.desktop)
     if guess in themes:
         return guess
+
+
+class xdg_icon_provider():
+    def icon(self, fi):
+        if fi.isDir():
+            return QtGui.QIcon.fromTheme("inode-directory")
+        mime = Mime.get_type(fi.absoluteFilePath())
+        mimestr = str(mime).replace("/", "-")
+        icon = G.icon_cache.get(mimestr)
+        if icon:
+            return icon
+        ipath = IconTheme.getIconPath(mimestr, theme=G.icon_theme)
+        if not ipath:
+            ipath = IconTheme.getIconPath(mime.media + "-x-generic", theme=G.icon_theme)
+        qi = QtGui.QIcon(ipath)
+        if qi.isNull():
+            qi = QtGui.QIcon.fromTheme("text-plain")
+        G.icon_cache[mimestr] = qi
+        return qi
 
 
 ### Ugly piece of shit from xdg-mime. Fuck the linux desktop.

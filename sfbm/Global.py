@@ -16,6 +16,7 @@ populating = False
 terminal = None
 desktop = ""
 icon_theme = "oxygen"
+icon_cache = {}
 
 EXECUTABLES = {"application/x-executable",
                "application/executable",

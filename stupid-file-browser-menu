@@ -6,7 +6,7 @@ import subprocess
 from PyQt4 import QtCore, QtGui
 from sfbm.Config import Config
 from sfbm.Ui import PrefsDialog
-from sfbm.FileUtil import guess_terminal, guess_icon_theme, detect_de
+from sfbm.FileUtil import guess_terminal, guess_icon_theme, detect_de, xdg_icon_provider
 from sfbm.ContextMenu import ContextMenu
 from sfbm.DirectoryMenu import RootEntry
 from sfbm.GuiUtil import DraggyMenu
@@ -28,7 +28,6 @@ class SFBM(QtGui.QApplication):
         G.italic_font.setItalic(True)
         G.desktop = detect_de()
         G.model = QtGui.QStandardItemModel()
-        G.icon_provider = QtGui.QFileIconProvider()
         G.settings = Config()
         try:
             setting = G.settings.value("Settings/Terminal", None)
@@ -52,6 +51,10 @@ class SFBM(QtGui.QApplication):
             G.icon_theme = "hicolor"
         finally:
             QtGui.QIcon.setThemeName(G.icon_theme)
+            if G.icon_theme == "oxygen":
+                G.icon_provider = QtGui.QFileIconProvider()
+            else:
+                G.icon_provider = xdg_icon_provider()
         G.prefs_dialog = PrefsDialog()
         G.item_context_menu = ContextMenu()
         G.systray = MainTray()
@@ -148,6 +151,7 @@ class MainTray(QtGui.QSystemTrayIcon):
     @Slot(QtGui.QSystemTrayIcon.ActivationReason)
     def on_activated(self, reason):
         if reason == QtGui.QSystemTrayIcon.Trigger:
+            G.icon_cache = {}
             self.menu.popup(QtGui.QCursor.pos())
 
     @property
