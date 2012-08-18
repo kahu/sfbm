@@ -146,7 +146,15 @@ def list_icon_themes():
                     and ini.hasKey("Directories", "Icon Theme")
                     and not ini.get("Hidden", group="Icon Theme") == "true"):
                     themes[th] = ini
-    return themes.values()
+    return themes.keys()
+
+
+def guess_icon_theme():
+    guesses = {"kde": "oxygen", "gnome": "gnome"}
+    themes = list_icon_themes()
+    guess = guesses.get(G.desktop)
+    if guess in themes:
+        return guess
 
 
 ### Ugly piece of shit from xdg-mime. Fuck the linux desktop.

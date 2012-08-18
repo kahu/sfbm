@@ -1,6 +1,6 @@
 import os
 import sfbm.Global as G
-from sfbm.FileUtil import list_terminals
+from sfbm.FileUtil import list_terminals, list_icon_themes
 from PyQt4 import QtCore, QtGui, uic
 Slot = QtCore.pyqtSlot
 
@@ -54,7 +54,7 @@ class PrefsDialog(QtGui.QDialog):
             self.try_set_icon(*wid)
         self.ui.listView.setModel(G.model)
         self.ui.listView.setEditTriggers(QtGui.QListView.NoEditTriggers)
-        self.init_combobox()
+        self.init_terminal_combobox()
         self.selection = self.ui.listView.selectionModel()
         self.selection.currentChanged.connect(self.update)
 
@@ -147,6 +147,13 @@ class PrefsDialog(QtGui.QDialog):
         G.terminal = (name, cmdline)
         G.settings.setValue("Settings/Terminal", G.terminal)
 
+    @Slot(str)
+    def on_iconThemeComboBox_activated(self, theme):
+        G.icon_theme = theme
+        QtGui.QIcon.setThemeName(theme)
+        self.repaint()
+        G.settings.setValue("Settings/IconTheme", G.icon_theme)
+
     def try_set_icon(self, wid, icon_name, text):
         icon = QtGui.QIcon.fromTheme(icon_name)
         wid.setText(text) if icon.isNull() else wid.setIcon(icon)
@@ -155,13 +162,21 @@ class PrefsDialog(QtGui.QDialog):
         for (opt, box) in self.checkboxes.items():
             box.setChecked(options[opt])
 
-    def init_combobox(self):
+    def init_terminal_combobox(self):
         for (name, cmdline) in list_terminals():
             self.ui.terminalComboBox.addItem(name, cmdline)
+
+    def init_theme_combobox(self):
+        self.ui.iconThemeComboBox.clear()
+        for theme in list_icon_themes():
+            self.ui.iconThemeComboBox.addItem(theme)
+        idx = self.ui.iconThemeComboBox.findText(G.icon_theme)
+        self.ui.iconThemeComboBox.setCurrentIndex(idx)
 
     def activate(self):
         self.ui.listView.setCurrentIndex(G.model.index(0, 0))
         self.ui.trayiconButton.setIcon(G.systray.icon())
+        self.init_theme_combobox()
 
         name, cmdline = G.terminal
         index = self.ui.terminalComboBox.findText(name)
