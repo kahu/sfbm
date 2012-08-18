@@ -130,6 +130,29 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
     return None
 
 
+### Ugly piece of shit from xdg-mime. Fuck the linux desktop.
+def detect_de():
+    if os.getenv("KDE_FULL_SESSION") == "true":
+        return "kde"
+    if os.getenv("GNOME_DESKTOP_SESSION_ID"):
+        return "gnome"
+    if os.getenv("DESKTOP_SESSION") == "LXDE":
+        return "lxde"
+    if os.getenv("XDG_CURRENT_DESKTOP") == "LXDE":
+        return "lxde"
+    if "xfce4" in subprocess.Popen(["xprop", "-root", "_DT_SAVE_MODE"],
+                                   stdout=subprocess.PIPE).communicate()[0].decode():
+        return "xfce"
+    if subprocess.call("dbus-send --print-reply"
+                       "--dest=org.freedesktop.DBus"
+                       "/org/freedesktop/DBus"
+                       "org.freedesktop.DBus.GetNameOwner"
+                       "string:org.gnome.SessionManager > /dev/null 2>&1",
+                       shell=True) == 0:
+        return "gnome"
+    return "it's a kitty!"
+
+
 def opens_with(mimetype):
     def _kde():
         proc = subprocess.Popen(["ktraderclient", "--mimetype", mimetype],
@@ -142,8 +165,12 @@ def opens_with(mimetype):
 
     def _generic():
         entries = OrderedDict()
+        seen = set()
         for mapps in itertools.chain(BaseDirectory.load_data_paths("applications/mimeapps.list"),
                                      BaseDirectory.load_data_paths("applications/defaults.list")):
+            if mapps in seen:
+                continue
+            seen.add(mapps)
             with open(mapps) as mf:
                 for l in mf:
                     if l.startswith(mimetype):
@@ -156,7 +183,9 @@ def opens_with(mimetype):
                                     entry = DesktopEntry.DesktopEntry(dpath[0])
                                     entries[dfile] = entry
         return entries.values()
-    return _generic()
+
+    desks = {"kde": _kde}
+    return desks.get(G.desktop, _generic)()
 
 
 def get_mime_type(path):

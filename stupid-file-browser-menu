@@ -6,7 +6,7 @@ import subprocess
 from PyQt4 import QtCore, QtGui
 from sfbm.Config import Config
 from sfbm.Ui import PrefsDialog
-from sfbm.FileUtil import guess_terminal
+from sfbm.FileUtil import guess_terminal, detect_de
 from sfbm.ContextMenu import ContextMenu
 from sfbm.DirectoryMenu import RootEntry
 from sfbm.GuiUtil import DraggyMenu
@@ -26,6 +26,7 @@ class SFBM(QtGui.QApplication):
         G.bold_font.setBold(True)
         G.italic_font = self.font()
         G.italic_font.setItalic(True)
+        G.desktop = detect_de()
         G.model = QtGui.QStandardItemModel()
         G.icon_provider = QtGui.QFileIconProvider()
         G.settings = Config()
