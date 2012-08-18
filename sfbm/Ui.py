@@ -1,6 +1,6 @@
 import os
 import sfbm.Global as G
-from sfbm.FileUtil import list_terminals, list_icon_themes
+from sfbm.FileUtil import list_terminals, list_icon_themes, set_icon_theme
 from PyQt4 import QtCore, QtGui, uic
 Slot = QtCore.pyqtSlot
 
@@ -149,10 +149,8 @@ class PrefsDialog(QtGui.QDialog):
 
     @Slot(str)
     def on_iconThemeComboBox_activated(self, theme):
-        G.icon_theme = theme
-        QtGui.QIcon.setThemeName(theme)
+        set_icon_theme(theme)
         self.repaint()
-        G.settings.setValue("Settings/IconTheme", G.icon_theme)
 
     def try_set_icon(self, wid, icon_name, text):
         icon = QtGui.QIcon.fromTheme(icon_name)

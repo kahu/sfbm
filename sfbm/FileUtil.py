@@ -157,6 +157,22 @@ def guess_icon_theme():
         return guess
 
 
+def set_icon_theme(theme=None):
+    try:
+        theme = theme or G.settings.value("Settings/IconTheme", None)
+        G.icon_theme = theme or guess_icon_theme()
+    except:
+        G.icon_theme = "hicolor"
+    finally:
+        QtGui.QIcon.setThemeName(G.icon_theme)
+        G.settings.setValue("Settings/IconTheme", G.icon_theme)
+        if ((G.desktop == "kde" and G.icon_theme == "oxygen")
+            or (G.desktop == "gnome" and G.icon_theme == "gnome")):
+            G.icon_provider = QtGui.QFileIconProvider()
+        else:
+            G.icon_provider = xdg_icon_provider()
+
+
 class xdg_icon_provider():
     def icon(self, fi):
         if fi.isDir():
