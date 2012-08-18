@@ -93,14 +93,15 @@ def decorate_action(action, root=None, in_path=False):
     if fi.isDir():
         action.setMenu(DirectoryMenu(root))
         return name, G.icon_provider.icon(fi)
-    xec = maybe_execute(fi)
-    if isinstance(xec, DesktopEntry.DesktopEntry):
-        action.setFont(G.bold_font)
-        name, icon = entry_visuals(xec)
-        action.setFont(G.bold_font)
-        return name, icon
-    if not in_path and xec is True:
-        action.setFont(G.bold_font)
+    if not in_path:
+        xec = maybe_execute(fi)
+        if isinstance(xec, DesktopEntry.DesktopEntry):
+            action.setFont(G.bold_font)
+            name, icon = entry_visuals(xec)
+            action.setFont(G.bold_font)
+            return name, icon
+        if xec:
+            action.setFont(G.bold_font)
     return name, G.icon_provider.icon(fi)
 
 
