@@ -34,7 +34,8 @@ class DirectoryMenu(QtGui.QMenu, DraggyMenu):
     @Slot()
     def die(self):
         for c in self.children():
-            c.deleteLater()
+            if isinstance(c, MenuEntry):
+                c.deleteLater()
 
     def get_contents(self):
         for act in self.children():
