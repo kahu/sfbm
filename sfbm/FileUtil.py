@@ -1,6 +1,7 @@
 import subprocess
 import os
 import itertools
+import pipes
 from collections import OrderedDict
 from PyQt4 import QtCore, QtGui
 from xdg import Mime, DesktopEntry, IconTheme, BaseDirectory, IniFile
@@ -43,27 +44,37 @@ def unescape_slashes(key):
         return None
 
 
-def format_expander(key, urllist=None):
+def format_expander(key, entry=None, urllist=None):
     if key == "%%":
         return "%"
     if key.startswith("%"):
-        if key == "%f":
-            return "'" + urllist[0].path() + "'" if urllist else ""
-        if key == "%F":
-            return " ".join(["'" + u.path() + "'"
-                             for u in urllist]) if urllist else ""
-        if key == "%u":
-            return "'" + urllist[0].toString() + "'" if urllist else ""
-        if key == "%U":
-            return " ".join(["'" + u.toString() + "'"
-                             for u in urllist]) if urllist else ""
+        if urllist:
+            if key == "%f":
+                return pipes.quote(urllist[0].path())
+            if key == "%F":
+                return ' '.join(pipes.quote(u.path()) for u in urllist)
+            if key == "%u":
+                return pipes.quote(urllist[0].toString())
+            if key == "%U":
+                return ' '.join(pipes.quote(u.toString()) for u in urllist)
+        if key == "%i":
+            icon = entry.getIcon()
+            if icon:
+                return "--icon " + pipes.quote(icon)
+        if key == "%c":
+            name = entry.getName()
+            return pipes.quote(name)
+        if key == "%k":
+            path = os.path.dirname(entry.getFileName())
+            if os.path.isabs(path):
+                return pipes.quote(path)
         return ""
     return None
 
 
 def parse_exec_line(entry, urllist=None):
     xec = unescaper(entry.getExec(), unescape_slashes)
-    xec = unescaper(xec, lambda k: format_expander(k, urllist=urllist))
+    xec = unescaper(xec, lambda k: format_expander(k, entry=entry, urllist=urllist))
     return xec
 
 
