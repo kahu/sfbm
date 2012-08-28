@@ -151,6 +151,8 @@ class MainTray(QtGui.QSystemTrayIcon):
         icon = QtGui.QIcon(path)
         if (not path) or icon.isNull():
             icon = QtGui.QIcon.fromTheme("user-home")
+            if icon.isNull():
+                icon = QtGui.QFileIconProvider().icon(QtGui.QFileIconProvider.Drive)
         self.setIcon(icon)
         G.App.setWindowIcon(icon)
 
