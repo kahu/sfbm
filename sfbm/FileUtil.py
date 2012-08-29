@@ -242,7 +242,7 @@ def opens_with(mimetype):
         res = proc.communicate()[0].decode().splitlines()
         entries = itertools.takewhile(lambda s: s[0] in " \t" and
                                       s.endswith(".desktop"), res[2:])
-        entries = map(lambda s: s.strip(), entries)
+        entries = [s.strip() for s in entries]
         for i, entry in enumerate(entries):
             if entry.startswith("kde4-"):
                 entries[i] = "kde4/" + entry[5:]
