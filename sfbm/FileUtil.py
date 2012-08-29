@@ -236,6 +236,21 @@ def opens_with(mimetype):
         entries = map(DesktopEntry.DesktopEntry, entries)
         return entries
 
+    def _gnome():
+        proc = subprocess.Popen(["gvfs-mime", "--query", mimetype],
+                                stdout=subprocess.PIPE)
+        res = proc.communicate()[0].decode().splitlines()
+        entries = itertools.takewhile(lambda s: s[0] in " \t" and
+                                      s.endswith(".desktop"), res[2:])
+        entries = map(lambda s: s.strip(), entries)
+        for i, entry in enumerate(entries):
+            if entry.startswith("kde4-"):
+                entries[i] = "kde4/" + entry[5:]
+        entries = map(lambda s: next(BaseDirectory.load_data_paths(
+                                        "applications/" + s)), entries)
+        entries = map(DesktopEntry.DesktopEntry, entries)
+        return entries
+
     def _generic():
         entries = OrderedDict()
         seen = set()
@@ -257,8 +272,11 @@ def opens_with(mimetype):
                                     entries[dfile] = entry
         return entries.values()
 
-    desks = {"kde": _kde}
-    return desks.get(G.desktop, _generic)()
+    desks = {"kde": _kde, "gnome": _gnome}
+    try:
+        return desks.get(G.desktop)()
+    except:
+        return _generic()
 
 
 def get_mime_type(path):
