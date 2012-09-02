@@ -13,8 +13,10 @@ drag_start_action = None
 icon_provider = None
 abort = False
 populating = False
-active_root = None
 terminal = None
+desktop = ""
+icon_theme = "oxygen"
+icon_cache = {}
 
 EXECUTABLES = {"application/x-executable",
                "application/executable",
@@ -22,4 +24,5 @@ EXECUTABLES = {"application/x-executable",
 
 default_options = {"ShowHidden": False,
                    "DirsFirst": True,
-                   "IncludePrevious": False}
+                   "IncludePrevious": False,
+                   "Flatten": False}

@@ -1,3 +1,4 @@
+import os
 from PyQt4 import QtCore
 import sfbm.Global as G
 
@@ -19,6 +20,9 @@ class Config(QtCore.QSettings):
                     yield path, icon, options
             else:
                 yield "/", None, None
+                home = os.getenv("HOME")
+                if home:
+                    yield home, None, None
         finally:
             self.endArray()
             self.endGroup()
