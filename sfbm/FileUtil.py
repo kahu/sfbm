@@ -21,7 +21,7 @@ def unescaper(s, repfunc):
         return s
 
     def _inner():
-        it = zip(s, s[1:])
+        it = itertools.izip(s, s[1:])
         for cur, nex in it:
             key = cur + nex
             rep = repfunc(key)

@@ -51,7 +51,7 @@ class DirectoryMenu(QtGui.QMenu, DraggyMenu):
         directory.setSorting(self.root.sorting)
         directory.setFilter(self.root.filter)
         file_list = directory.entryInfoList()
-        in_path = self.menuAction().path() in os.get_exec_path()
+        in_path = self.menuAction().path() in os.environ.get("PATH", os.defpath).split(os.pathsep)
         try:
             G.App.installEventFilter(self)
             for i, item in enumerate(file_list):
