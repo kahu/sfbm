@@ -1,3 +1,15 @@
+sfbm (0.7) precise; urgency=low
+
+  * Handle errors when opening terminal.
+  * Add "Flatten" option and mimetype menu.
+  * Open With menu for files and mimetype menus.
+  * Show name and icon for .desktop files.
+  * Shitty icon theme selection.
+  * Stupid xdg icon provider.
+  * Add home directory to defaults.
+
+ -- Ka Hu <kahu2000@gmail.com>  Sun, 02 Sep 2012 06:04:41 +0200
+
 sfbm (0.6) precise; urgency=low
 
   * Fix default systray icon.
