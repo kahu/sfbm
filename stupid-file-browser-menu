@@ -10,7 +10,7 @@ from sfbm.FileUtil import guess_terminal, guess_icon_theme, detect_de
 from sfbm.FileUtil import set_icon_theme, xdg_icon_provider
 from sfbm.ContextMenu import ContextMenu
 from sfbm.DirectoryMenu import RootEntry
-from sfbm.GuiUtil import DraggyMenu
+from sfbm.GuiUtil import draggy_menu
 import sfbm.Global as G
 Slot = QtCore.pyqtSlot
 
@@ -80,7 +80,8 @@ class SFBM(QtGui.QApplication):
         G.systray.deleteLater()
 
 
-class MainMenu(QtGui.QMenu, DraggyMenu):
+@draggy_menu
+class MainMenu(QtGui.QMenu):
     def __init__(self, parent=None):
         QtGui.QMenu.__init__(self, parent)
 

@@ -2,12 +2,13 @@ import os
 from PyQt4 import QtCore, QtGui
 import sfbm.Global as G
 from sfbm.FileUtil import launch, maybe_execute, entry_visuals
-from sfbm.GuiUtil import DraggyAction, DraggyMenu, actionAtPos, StopPopulating
+from sfbm.GuiUtil import DraggyAction, draggy_menu, actionAtPos, StopPopulating
 from xdg import DesktopEntry
 Slot = QtCore.pyqtSlot
 
 
-class DirectoryMenu(QtGui.QMenu, DraggyMenu):
+@draggy_menu
+class DirectoryMenu(QtGui.QMenu):
     def __init__(self, root=None, parent=None):
         QtGui.QMenu.__init__(self, parent)
 

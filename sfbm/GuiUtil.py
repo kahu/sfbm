@@ -23,7 +23,7 @@ class DraggyAction():
         pass
 
 
-class DraggyMenu():
+def draggy_menu(func):
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             pos = event.globalPos()
@@ -79,3 +79,9 @@ class DraggyMenu():
             event.accept()
         else:
             QtGui.QMenu.mouseReleaseEvent(self, event)
+
+    func.mousePressEvent = mousePressEvent
+    func.mouseMoveEvent = mouseMoveEvent
+    func.contextMenuEvent = contextMenuEvent
+    func.mouseReleaseEvent = mouseReleaseEvent
+    return func

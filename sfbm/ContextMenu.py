@@ -2,7 +2,7 @@ import os
 from PyQt4 import QtGui, QtCore
 from sfbm.FileUtil import launch, maybe_execute, get_mime_type, entry_visuals
 from sfbm.FileUtil import readable_size, terminal_there, opens_with
-from sfbm.GuiUtil import DraggyAction, DraggyMenu
+from sfbm.GuiUtil import DraggyAction, draggy_menu
 import sfbm.Global as G
 
 
@@ -96,7 +96,8 @@ class MimeAction(QtGui.QAction, DraggyAction):
         return pix
 
 
-class MimeMenu(QtGui.QMenu, DraggyMenu):
+@draggy_menu
+class MimeMenu(QtGui.QMenu):
     def __init__(self, action, parent=None):
         QtGui.QMenu.__init__(self, parent)
 
@@ -122,7 +123,8 @@ class MimeMenu(QtGui.QMenu, DraggyMenu):
         event.accept()
 
 
-class ContextMenu(QtGui.QMenu, DraggyMenu):
+@draggy_menu
+class ContextMenu(QtGui.QMenu):
     def __init__(self, parent=None):
         QtGui.QMenu.__init__(self, parent)
 
