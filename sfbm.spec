@@ -7,7 +7,7 @@ Name:             sfbm
 Summary:          Menu-based file browser in the sytem tray.
 License:          GPL-3.0
 Group:            Productivity/File utilities
-Version:          0.7
+Version:          0.7.1
 Release:          0
 Url:              https://github.com/kahu/sfbm
 Source:           %{name}-%{version}.tar.gz
