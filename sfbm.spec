@@ -4,7 +4,7 @@
 # Copyright (c) 2013 Ka Hu <kahu2000@gmail.com>
 
 Name:           sfbm
-Version:        0.7.3
+Version:        0.7.4
 Release:        0
 License:        GPL-3.0
 Summary:        Menu-based file browser in the system tray
