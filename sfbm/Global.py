@@ -20,7 +20,8 @@ icon_cache = {}
 
 EXECUTABLES = {"application/x-executable",
                "application/executable",
-               "text/x-shellscript"}
+               "text/x-shellscript",
+               "application/x-shellscript"}
 
 default_options = {"ShowHidden": False,
                    "DirsFirst": True,
