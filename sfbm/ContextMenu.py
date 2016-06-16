@@ -1,14 +1,14 @@
 import os
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from sfbm.FileUtil import launch, maybe_execute, get_mime_type, entry_visuals
 from sfbm.FileUtil import readable_size, terminal_there, opens_with
 from sfbm.GuiUtil import DraggyAction, draggy_menu
 import sfbm.Global as G
 
 
-class PermissionsMenu(QtGui.QMenu):
+class PermissionsMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
-        QtGui.QMenu.__init__(self, parent)
+        QtWidgets.QMenu.__init__(self, parent)
 
         self.cur_path = None
         self.cur_perm = None
@@ -25,16 +25,16 @@ class PermissionsMenu(QtGui.QMenu):
         self.fileinfo.refresh()
         self.cur_path = self.fileinfo.absoluteFilePath()
         self.cur_perm = os.stat(self.cur_path).st_mode
-        perm_action = QtGui.QWidgetAction(self)
-        perm_widget = QtGui.QWidget()
+        perm_action = QtWidgets.QWidgetAction(self)
+        perm_widget = QtWidgets.QWidget()
         perm_action.setDefaultWidget(perm_widget)
-        v_lay = QtGui.QVBoxLayout(perm_widget)
+        v_lay = QtWidgets.QVBoxLayout(perm_widget)
         for context, j in zip(["User: ", "Group: ", "Other: "], [0o100, 0o10, 0o1]):
-            row = QtGui.QWidget()
-            h_lay = QtGui.QHBoxLayout(row)
-            h_lay.addWidget(QtGui.QLabel(context))
+            row = QtWidgets.QWidget()
+            h_lay = QtWidgets.QHBoxLayout(row)
+            h_lay.addWidget(QtWidgets.QLabel(context))
             for flag, i in zip(["Read", "Write", "Exec"], [4, 2, 1]):
-                cbox = QtGui.QCheckBox(flag)
+                cbox = QtWidgets.QCheckBox(flag)
                 if self.cur_perm & (i * j):
                     cbox.setChecked(True)
                 cbox.stateChanged.connect(lambda s, m=i * j: self.do_chmod(m))
@@ -45,16 +45,16 @@ class PermissionsMenu(QtGui.QMenu):
         for own, f in zip(["User: ", "Group: "],
                           [self.fileinfo.owner(),
                            self.fileinfo.group()]):
-            act = QtGui.QAction(self)
+            act = QtWidgets.QAction(self)
             act.setText(own + f)
             act.setDisabled(True)
             self.addAction(act)
         self.addAction(perm_action)
 
 
-class OpenMenu(QtGui.QMenu):
+class OpenMenu(QtWidgets.QMenu):
     def __init__(self, actions, parent=None):
-        QtGui.QMenu.__init__(self, parent)
+        QtWidgets.QMenu.__init__(self, parent)
 
         self.aboutToShow.connect(self.populate)
         self.actions = actions
@@ -63,7 +63,7 @@ class OpenMenu(QtGui.QMenu):
         self.clear()
         for entry in opens_with(get_mime_type(self.actions[0].path())):
             name, icon = entry_visuals(entry)
-            act = QtGui.QAction(name, self)
+            act = QtWidgets.QAction(name, self)
             if icon and not icon.isNull():
                 act.setIcon(icon)
             act.triggered.connect(lambda dummy,
@@ -78,9 +78,9 @@ class OpenMenu(QtGui.QMenu):
         launch(xec, urllist=urllist)
 
 
-class MimeAction(QtGui.QAction, DraggyAction):
+class MimeAction(QtWidgets.QAction, DraggyAction):
     def __init__(self, action, parent=None):
-        QtGui.QAction.__init__(self, parent)
+        QtWidgets.QAction.__init__(self, parent)
 
         self.setMenu(MimeMenu(action))
         self.mime = get_mime_type(action.path())
@@ -97,9 +97,9 @@ class MimeAction(QtGui.QAction, DraggyAction):
 
 
 @draggy_menu
-class MimeMenu(QtGui.QMenu):
+class MimeMenu(QtWidgets.QMenu):
     def __init__(self, action, parent=None):
-        QtGui.QMenu.__init__(self, parent)
+        QtWidgets.QMenu.__init__(self, parent)
 
         self.action = action
         self.path = action.path()
@@ -114,7 +114,7 @@ class MimeMenu(QtGui.QMenu):
             if act.data():
                 if self.menuAction().mime == get_mime_type(act.path()):
                     self.actions.append(act)
-        self.open_action = QtGui.QAction("Open With", self)
+        self.open_action = QtWidgets.QAction("Open With", self)
         self.open_action.setMenu(OpenMenu(self.actions))
         self.addAction(self.open_action)
         self.addActions(self.actions)
@@ -124,31 +124,31 @@ class MimeMenu(QtGui.QMenu):
 
 
 @draggy_menu
-class ContextMenu(QtGui.QMenu):
+class ContextMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
-        QtGui.QMenu.__init__(self, parent)
+        QtWidgets.QMenu.__init__(self, parent)
 
         self.aboutToShow.connect(self.prepare)
 
     def prepare(self):
         ### Open file
-        self.open_action = QtGui.QAction("Open", self)
+        self.open_action = QtWidgets.QAction("Open", self)
         self.open_action.triggered.connect(lambda: launch(self.action.data()))
 
         ### Terminal
-        self.term_action = QtGui.QAction("Open Terminal Here", self)
+        self.term_action = QtWidgets.QAction("Open Terminal Here", self)
         self.term_action.triggered.connect(lambda: terminal_there(self.action.data()))
 
         ### Permissions
-        self.perm_action = QtGui.QAction("Permissions", self)
+        self.perm_action = QtWidgets.QAction("Permissions", self)
         self.perm_menu = PermissionsMenu()
         self.perm_action.setMenu(self.perm_menu)
 
-        self.title_action = QtGui.QAction("", self)
+        self.title_action = QtWidgets.QAction("", self)
         self.title_action.setEnabled(False)
         self.title_action.setFont(G.bold_font)
 
-        self.size_action = QtGui.QAction("", self)
+        self.size_action = QtWidgets.QAction("", self)
         self.size_action.setEnabled(False)
 
         self.addAction(self.title_action)
@@ -166,7 +166,7 @@ class ContextMenu(QtGui.QMenu):
             self.mime_action = MimeAction(self.action, parent=self)
             self.addAction(self.mime_action)
         self.addAction(self.open_action)
-        self.opact = QtGui.QAction("Open With", self)
+        self.opact = QtWidgets.QAction("Open With", self)
         self.opact.setMenu(OpenMenu([self.action]))
         self.addAction(self.opact)
         self.addAction(self.term_action)

@@ -4,7 +4,7 @@
 # Copyright (c) 2013 Ka Hu <kahu2000@gmail.com>
 
 Name:           sfbm
-Version:        0.7.4
+Version:        0.8
 Release:        0
 License:        GPL-3.0
 Summary:        Menu-based file browser in the system tray
@@ -14,7 +14,7 @@ Source:         %{name}-%{version}.tar.gz
 BuildRequires:  fdupes
 BuildRequires:  python3-devel
 BuildRequires:  python3-distribute
-Requires:       python3-qt4
+Requires:       python3-qt5
 Requires:       python3-xdg
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
 BuildArch:      noarch
