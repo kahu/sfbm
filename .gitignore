@@ -5,3 +5,5 @@ build/
 dist/
 #debian/
 MANIFEST
+.kdev4/
+*.kdev4

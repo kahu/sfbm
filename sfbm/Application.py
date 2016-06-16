@@ -1,7 +1,9 @@
+#!/usr/bin/python3
+
 import sys
 import os
 import subprocess
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from sfbm.Config import Config
 from sfbm.Ui import PrefsDialog
 from sfbm.FileUtil import guess_terminal, guess_icon_theme, detect_de
@@ -13,9 +15,9 @@ import sfbm.Global as G
 Slot = QtCore.pyqtSlot
 
 
-class SFBM(QtGui.QApplication):
+class SFBM(QtWidgets.QApplication):
     def __init__(self):
-        QtGui.QApplication.__init__(self, sys.argv)
+        QtWidgets.QApplication.__init__(self, sys.argv)
 
         QtCore.QCoreApplication.setApplicationName("sfbm")
         QtCore.QCoreApplication.setOrganizationName("sfbm")
@@ -45,7 +47,7 @@ class SFBM(QtGui.QApplication):
         G.systray = MainTray()
         self.roots = {}
         self.setAttribute(QtCore.Qt.AA_DontShowIconsInMenus, on=False)
-        self.setStyleSheet("QMenu { menu-scrollable: 1; }")
+
         self.setQuitOnLastWindowClosed(False)
         self.aboutToQuit.connect(self.on_death)
 
@@ -79,9 +81,9 @@ class SFBM(QtGui.QApplication):
 
 
 @draggy_menu
-class MainMenu(QtGui.QMenu):
+class MainMenu(QtWidgets.QMenu):
     def __init__(self, parent=None):
-        QtGui.QMenu.__init__(self, parent)
+        QtWidgets.QMenu.__init__(self, parent)
 
         self.app_actions = []
         self.aboutToShow.connect(self.populate_menu)
@@ -90,7 +92,7 @@ class MainMenu(QtGui.QMenu):
         self.add_app_action("Quit", G.App.quit, "application-exit")
 
     def add_app_action(self, text, func, theme_icon=None):
-        action = QtGui.QAction(text, G.systray)
+        action = QtWidgets.QAction(text, G.systray)
         action.triggered.connect(func)
         if theme_icon:
             action.setIcon(QtGui.QIcon().fromTheme(theme_icon))
@@ -123,10 +125,13 @@ class MainMenu(QtGui.QMenu):
             self.addSeparator()
             self.addActions(self.app_actions)
 
+    def leaveEvent(self, event, **args):
+        pass
 
-class MainTray(QtGui.QSystemTrayIcon):
+
+class MainTray(QtWidgets.QSystemTrayIcon):
     def __init__(self, parent=None):
-        QtGui.QSystemTrayIcon.__init__(self, parent)
+        QtWidgets.QSystemTrayIcon.__init__(self, parent)
 
         self.icon_path = G.settings.value("Settings/Icon")
         self.menu = MainMenu(parent)
@@ -134,9 +139,9 @@ class MainTray(QtGui.QSystemTrayIcon):
         self.activated.connect(self.on_activated)
         self.show()
 
-    @Slot(QtGui.QSystemTrayIcon.ActivationReason)
+    @Slot(QtWidgets.QSystemTrayIcon.ActivationReason)
     def on_activated(self, reason):
-        if reason == QtGui.QSystemTrayIcon.Trigger:
+        if reason == QtWidgets.QSystemTrayIcon.Trigger:
             G.icon_cache = {}
             self.menu.popup(QtGui.QCursor.pos())
 
@@ -151,7 +156,7 @@ class MainTray(QtGui.QSystemTrayIcon):
         if (not path) or icon.isNull():
             icon = QtGui.QIcon.fromTheme("user-home")
             if icon.isNull():
-                icon = QtGui.QFileIconProvider().icon(QtGui.QFileIconProvider.Drive)
+                icon = QtWidgets.QFileIconProvider().icon(QtWidgets.QFileIconProvider.Drive)
         self.setIcon(icon)
         G.App.setWindowIcon(icon)
 

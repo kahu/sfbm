@@ -3,7 +3,7 @@ import os
 import itertools
 import pipes
 from collections import OrderedDict
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from xdg import Mime, DesktopEntry, IconTheme, BaseDirectory, IniFile
 import sfbm.Global as G
 
@@ -179,7 +179,7 @@ def set_icon_theme(theme=None):
         G.settings.setValue("Settings/IconTheme", G.icon_theme)
         if ((G.desktop == "kde" and G.icon_theme == "oxygen")
             or (G.desktop == "gnome" and G.icon_theme == "gnome")):
-            G.icon_provider = QtGui.QFileIconProvider()
+            G.icon_provider = QtWidgets.QFileIconProvider()
         else:
             G.icon_provider = xdg_icon_provider()
 

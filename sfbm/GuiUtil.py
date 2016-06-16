@@ -1,11 +1,11 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sfbm.Global as G
 from sfbm.FileUtil import launch
 
 
 def actionAtPos(pos):
     menu = G.App.widgetAt(pos)
-    if isinstance(menu, QtGui.QMenu):
+    if isinstance(menu, QtWidgets.QMenu):
         action = menu.actionAt(menu.mapFromGlobal(pos))
         if action and isinstance(action, DraggyAction):
             return action
@@ -30,19 +30,19 @@ def draggy_menu(func):
             G.drag_start_position = pos
             G.drag_start_action = actionAtPos(pos)
             event.accept()
-        QtGui.QMenu.mousePressEvent(self, event)
+        QtWidgets.QMenu.mousePressEvent(self, event)
 
     def mouseMoveEvent(self, event):
         if (event.buttons() != QtCore.Qt.LeftButton or not G.drag_start_position):
-            QtGui.QMenu.mouseMoveEvent(self, event)
+            QtWidgets.QMenu.mouseMoveEvent(self, event)
             return
         distance = (event.globalPos() - G.drag_start_position).manhattanLength()
         if distance < G.App.startDragDistance():
-            QtGui.QMenu.mouseMoveEvent(self, event)
+            QtWidgets.QMenu.mouseMoveEvent(self, event)
             return
         dragged = G.drag_start_action
         if not isinstance(dragged, DraggyAction):
-            QtGui.QMenu.mouseMoveEvent(self, event)
+            QtWidgets.QMenu.mouseMoveEvent(self, event)
             return
         urllist = dragged.urllist()
         mimeData = QtCore.QMimeData()
@@ -78,7 +78,7 @@ def draggy_menu(func):
                     launch(action.root.data())
             event.accept()
         else:
-            QtGui.QMenu.mouseReleaseEvent(self, event)
+            QtWidgets.QMenu.mouseReleaseEvent(self, event)
 
     func.mousePressEvent = mousePressEvent
     func.mouseMoveEvent = mouseMoveEvent

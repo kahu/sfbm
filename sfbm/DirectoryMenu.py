@@ -1,5 +1,5 @@
 import os
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sfbm.Global as G
 from sfbm.FileUtil import launch, maybe_execute, entry_visuals
 from sfbm.GuiUtil import DraggyAction, draggy_menu, actionAtPos, StopPopulating
@@ -8,9 +8,9 @@ Slot = QtCore.pyqtSlot
 
 
 @draggy_menu
-class DirectoryMenu(QtGui.QMenu):
+class DirectoryMenu(QtWidgets.QMenu):
     def __init__(self, root=None, parent=None):
-        QtGui.QMenu.__init__(self, parent)
+        QtWidgets.QMenu.__init__(self, parent)
 
         self.aboutToShow.connect(self.populate)
         self.aboutToHide.connect(self.die)
@@ -27,7 +27,7 @@ class DirectoryMenu(QtGui.QMenu):
             return False
         return True
 
-    @Slot(QtGui.QAction)
+    @Slot(QtWidgets.QAction)
     def on_triggered(self, action):
         if isinstance(self.menuAction(), DraggyAction):
             launch(action.data())
@@ -74,7 +74,7 @@ class DirectoryMenu(QtGui.QMenu):
                 return
         if G.populating:
             return
-        QtGui.QMenu.keyPressEvent(self, event)
+        QtWidgets.QMenu.keyPressEvent(self, event)
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -86,7 +86,10 @@ class DirectoryMenu(QtGui.QMenu):
             G.systray.menu.hide()
             event.accept()
         else:
-            QtGui.QMenu.mouseDoubleClickEvent(self, event)
+            QtWidgets.QMenu.mouseDoubleClickEvent(self, event)
+
+    def leaveEvent(self, ev):
+        pass
 
 
 def decorate_action(action, root=None, in_path=False):
@@ -107,9 +110,9 @@ def decorate_action(action, root=None, in_path=False):
     return name, G.icon_provider.icon(fi)
 
 
-class MenuEntry(QtGui.QAction, DraggyAction):
+class MenuEntry(QtWidgets.QAction, DraggyAction):
     def __init__(self, fileinfo, root=None, parent=None, in_path=False):
-        QtGui.QAction.__init__(self, parent)
+        QtWidgets.QAction.__init__(self, parent)
 
         self.root = root
         G.App.processEvents()
@@ -128,10 +131,10 @@ class MenuEntry(QtGui.QAction, DraggyAction):
         return [QtCore.QUrl.fromLocalFile(self.path())]
 
     def drag_pixmap(self):
-        widget = QtGui.QWidget()
+        widget = QtWidgets.QWidget()
         layout = QtGui.QHBoxLayout(widget)
-        text_label = QtGui.QLabel(self.text())
-        icon_label = QtGui.QLabel()
+        text_label = QtWidgets.QLabel(self.text())
+        icon_label = QtWidgets.QLabel()
         icon_label.setPixmap(QtGui.QPixmap(self.icon().pixmap(24, 24)))
         layout.addWidget(icon_label)
         layout.addWidget(text_label)

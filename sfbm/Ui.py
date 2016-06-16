@@ -1,7 +1,7 @@
 import os
 import sfbm.Global as G
 from sfbm.FileUtil import list_terminals, list_icon_themes, set_icon_theme
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 Slot = QtCore.pyqtSlot
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -22,9 +22,9 @@ def icon_dialog(old_path):
     return fil
 
 
-class PrefsDialog(QtGui.QDialog):
+class PrefsDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
 
         ui_class, _ = uic.loadUiType(get_data("prefs.ui"))
         self.ui = ui_class()
@@ -53,7 +53,7 @@ class PrefsDialog(QtGui.QDialog):
         for wid in themed_widgets:
             self.try_set_icon(*wid)
         self.ui.listView.setModel(G.model)
-        self.ui.listView.setEditTriggers(QtGui.QListView.NoEditTriggers)
+        self.ui.listView.setEditTriggers(QtWidgets.QListView.NoEditTriggers)
         self.init_terminal_combobox()
         self.selection = self.ui.listView.selectionModel()
         self.selection.currentChanged.connect(self.update)
@@ -80,9 +80,9 @@ class PrefsDialog(QtGui.QDialog):
 
     @Slot()
     def on_addButton_clicked(self):
-        newdir = QtGui.QFileDialog.getExistingDirectory(parent=self,
+        newdir = QtWidgets.QFileDialog.getExistingDirectory(parent=self,
                                 directory=os.getenv("HOME"),
-                                options=QtGui.QFileDialog.ShowDirsOnly)
+                                options=QtWidgets.QFileDialog.ShowDirsOnly)
         if newdir:
             index = self.selection.currentIndex().row()
             G.App.add_rootentry(newdir, index=index)
