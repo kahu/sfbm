@@ -135,7 +135,6 @@ class MainTray(QtWidgets.QSystemTrayIcon):
 
         self.icon_path = G.settings.value("Settings/Icon")
         self.menu = MainMenu(parent)
-        self.setContextMenu(self.menu)
         self.activated.connect(self.on_activated)
         self.show()
 
