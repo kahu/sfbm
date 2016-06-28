@@ -1,8 +1,8 @@
-sfbm (0.8) UNRELEASED; urgency=medium
+sfbm (0.8.2) UNRELEASED; urgency=medium
 
   * sloppy Qt5 port.
 
- -- kahu <kahu2000@gmail.com>  Fri, 17 Jun 2016 00:23:39 +0200
+ -- kahu <kahu2000@gmail.com>  Tue, 28 Jun 2016 22:30:26 +0200
 
 sfbm (0.7) precise; urgency=low
 
