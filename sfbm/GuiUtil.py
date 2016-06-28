@@ -51,7 +51,7 @@ def draggy_menu(func):
         drag = QtGui.QDrag(self)
         drag.setPixmap(dragged.drag_pixmap())
         drag.setMimeData(mimeData)
-        drag.start(QtCore.Qt.MoveAction |
+        drag.exec(QtCore.Qt.MoveAction |
                    QtCore.Qt.CopyAction |
                    QtCore.Qt.LinkAction)
         G.drag_start_action = None

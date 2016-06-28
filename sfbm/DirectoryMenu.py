@@ -132,14 +132,14 @@ class MenuEntry(QtWidgets.QAction, DraggyAction):
 
     def drag_pixmap(self):
         widget = QtWidgets.QWidget()
-        layout = QtGui.QHBoxLayout(widget)
+        layout = QtWidgets.QHBoxLayout(widget)
         text_label = QtWidgets.QLabel(self.text())
         icon_label = QtWidgets.QLabel()
         icon_label.setPixmap(QtGui.QPixmap(self.icon().pixmap(24, 24)))
         layout.addWidget(icon_label)
         layout.addWidget(text_label)
         widget.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        pixmap = QtGui.QPixmap.grabWidget(widget)
+        pixmap = widget.grab()
         return pixmap
 
 
