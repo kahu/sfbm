@@ -228,7 +228,7 @@ def detect_de():
 
 def opens_with(mimetype):
     def _kde():
-        proc = subprocess.Popen(["ktraderclient", "--mimetype", mimetype],
+        proc = subprocess.Popen(["ktraderclient5", "--mimetype", mimetype],
                                 stdout=subprocess.PIPE)
         res = proc.communicate()[0].decode().splitlines()
         entries = filter(lambda s: s.startswith("DesktopEntryPath"), res)
